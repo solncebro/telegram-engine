@@ -1,0 +1,24 @@
+import type { Telegram } from "telegraf";
+import { LogFunction } from "./bot.types";
+
+interface MessageTracker {
+  get: (chatId: string) => number[];
+  set: (chatId: string, messageIdList: number[]) => void;
+  delete: (chatId: string) => void;
+  cleanup: (chatId: string, excludeMessageId?: number) => number[];
+}
+
+interface DeleteMessageListArgs {
+  chatId: number;
+  messageIdList: number[];
+  onLog?: LogFunction;
+}
+
+interface DeleteMessageListByIdArgs {
+  telegram: Telegram;
+  chatId: number;
+  messageIdList: number[];
+  onLog?: LogFunction;
+}
+
+export type { MessageTracker, DeleteMessageListArgs, DeleteMessageListByIdArgs };

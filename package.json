@@ -1,0 +1,70 @@
+{
+  "name": "@solncebro/telegram-engine",
+  "version": "0.1.0",
+  "description": "Universal TypeScript library for Telegram bots with menu system, broadcasting, and message management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "yarn lint && rm -rf dist && tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/ test/",
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "yarn test && yarn build"
+  },
+  "keywords": [
+    "telegram",
+    "telegraf",
+    "bot",
+    "menu",
+    "inline-keyboard",
+    "broadcast",
+    "markdownv2",
+    "typescript"
+  ],
+  "author": {
+    "name": "solncebro",
+    "url": "https://github.com/solncebro"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/solncebro/telegram-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/solncebro/telegram-engine/issues"
+  },
+  "homepage": "https://github.com/solncebro/telegram-engine#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "telegraf": "^4.16.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.2",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  }
+}
