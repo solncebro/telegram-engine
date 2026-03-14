@@ -18,7 +18,12 @@ export {
   parseCommaSeparatedRange,
 } from "./input/inputValidator";
 
-export { escapeMarkdownV2Text, formatClickableText } from "./message/markdownV2";
+export {
+  escapeMarkdownV2Text,
+  escapeMarkdownV2WithFormatting,
+  formatClickableText,
+  md,
+} from "./message/markdownV2";
 export { splitMessageToChunkList } from "./message/splitMessage";
 export { createMessageTracker } from "./message/messageTracker";
 export { deleteMessageListById } from "./message/deleteMessageList";

@@ -21,4 +21,14 @@ interface DeleteMessageListByIdArgs {
   onLog?: LogFunction;
 }
 
-export type { MessageTracker, DeleteMessageListArgs, DeleteMessageListByIdArgs };
+interface FormattingMarkerItem {
+  marker: string;
+  isCodeBlock: boolean;
+}
+
+export type {
+  MessageTracker,
+  DeleteMessageListArgs,
+  DeleteMessageListByIdArgs,
+  FormattingMarkerItem,
+};

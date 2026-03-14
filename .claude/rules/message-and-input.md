@@ -10,9 +10,15 @@
 
 Посимвольная обработка: каждый спецсимвол оборачивается в `\`. Принимает и числа (приводит к строке).
 
+**`escapeMarkdownV2WithFormatting(text: string): string`**
+
+Экранирует текст, сохраняя разметку: распознаёт пары маркеров `` ``` ` `` (code block), `` ` `` (inline code), `||` (spoiler), `*`, `_`, `~` (bold/italic/strikethrough). Внутри пар контент экранируется (кроме code block — остаётся как есть). Вне пар — как `escapeMarkdownV2Text`. Для сообщений с уже расставленным форматированием.
+
 **`formatClickableText(text: string | number): string`**
 
 Оборачивает текст в обратные кавычки для inline code: `` `BTCUSDT` ``. Используется для кликабельного текста в Telegram (пользователь может нажать и скопировать).
+
+**`md`** — объект-билдер для MarkdownV2: `bold`, `italic`, `code`, `strikethrough`, `spoiler`, `link(text, url)`, `escape`. Каждый метод экранирует переданный текст и оборачивает в соответствующие маркеры.
 
 ### splitMessage.ts — Разбиение длинных сообщений
 

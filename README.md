@@ -552,7 +552,9 @@ parseCommaSeparatedRange("abc,200");  // { isValid: false, errorMessage: "Invali
 ```typescript
 import {
   escapeMarkdownV2Text,
+  escapeMarkdownV2WithFormatting,
   formatClickableText,
+  md,
 } from "@solncebro/telegram-engine";
 
 const price = 1234.56;
@@ -570,7 +572,11 @@ await sender.sendMessage({
 
 `escapeMarkdownV2Text` экранирует все 18 спецсимволов MarkdownV2: `_ * [ ] ( ) ~ \` > # + - = | { } . !`
 
+`escapeMarkdownV2WithFormatting` экранирует текст, сохраняя уже расставленные маркеры форматирования (`*bold*`, `` `code` ``, `||spoiler||` и т.д.).
+
 `formatClickableText` оборачивает в обратные кавычки — в Telegram такой текст можно нажать и скопировать.
+
+`md` — билдер: `md.bold()`, `md.italic()`, `md.code()`, `md.strikethrough()`, `md.spoiler()`, `md.link(text, url)`, `md.escape()`.
 
 #### Разбиение длинных сообщений
 
@@ -925,7 +931,9 @@ console.log("Bot started");
 | `validateIntegerAndPositive` | input | Проверка целое + положительное |
 | `parseCommaSeparatedRange` | input | Парсинг `"from,to"` |
 | `escapeMarkdownV2Text` | message | Экранирование спецсимволов |
+| `escapeMarkdownV2WithFormatting` | message | Экранирование с сохранением разметки |
 | `formatClickableText` | message | Оборачивание в backticks |
+| `md` | message | Билдер bold/italic/code/spoiler/link/escape |
 | `splitMessageToChunkList` | message | Разбиение по лимиту |
 | `createMessageTracker` | message | Трекинг message ID по чатам |
 | `deleteMessageListById` | message | Пакетное удаление |
