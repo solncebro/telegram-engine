@@ -1,6 +1,6 @@
 {
   "name": "@solncebro/telegram-engine",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Universal TypeScript library for Telegram bots with menu system, broadcasting, and message management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

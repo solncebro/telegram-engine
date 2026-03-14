@@ -50,30 +50,30 @@ formatClickableText("BTCUSDT");  // → "`BTCUSDT`"
 formatClickableText(42);         // → "`42`"
 ```
 
-**`md`** — объект-билдер для MarkdownV2. Каждый метод экранирует переданный текст и оборачивает в соответствующие маркеры.
+**`markdownV2Builder`** — объект-билдер для MarkdownV2. Каждый метод экранирует переданный текст и оборачивает в соответствующие маркеры.
 
 **Методы:**
 
 | Метод | Результат | Пример |
 |-------|-----------|--------|
-| `md.bold(text)` | `*text*` с экранированием | `md.bold("100.5")` → `*100\.5*` |
-| `md.italic(text)` | `_text_` с экранированием | `md.italic("note")` → `_note_` |
-| `md.code(text)` | `` `text` `` без экранирования | `md.code("BTCUSDT")` → `` `BTCUSDT` `` |
-| `md.strikethrough(text)` | `~text~` с экранированием | `md.strikethrough("old")` → `~old~` |
-| `md.spoiler(text)` | `\|\|text\|\|` с экранированием | `md.spoiler("hidden")` → `\|\|hidden\|\|` |
-| `md.link(text, url)` | `[text](url)` с экранированием обоих | `md.link("click", "http://x.com")` → `[click](http://x\.com)` |
-| `md.escape(text)` | Экранирование без маркеров | `md.escape("+125.50")` → `\+125\.50` |
+| `markdownV2Builder.bold(text)` | `*text*` с экранированием | `markdownV2Builder.bold("100.5")` → `*100\.5*` |
+| `markdownV2Builder.italic(text)` | `_text_` с экранированием | `markdownV2Builder.italic("note")` → `_note_` |
+| `markdownV2Builder.code(text)` | `` `text` `` без экранирования | `markdownV2Builder.code("BTCUSDT")` → `` `BTCUSDT` `` |
+| `markdownV2Builder.strikethrough(text)` | `~text~` с экранированием | `markdownV2Builder.strikethrough("old")` → `~old~` |
+| `markdownV2Builder.spoiler(text)` | `\|\|text\|\|` с экранированием | `markdownV2Builder.spoiler("hidden")` → `\|\|hidden\|\|` |
+| `markdownV2Builder.link(text, url)` | `[text](url)` с экранированием обоих | `markdownV2Builder.link("click", "http://x.com")` → `[click](http://x\.com)` |
+| `markdownV2Builder.escape(text)` | Экранирование без маркеров | `markdownV2Builder.escape("+125.50")` → `\+125\.50` |
 
 **Примеры использования:**
 ```typescript
 const price = 1234.56;
 const symbol = "BTCUSDT";
 
-// Комбинирование bilderа
+// Комбинирование builder'а
 const message =
-  `Символ: ${md.code(symbol)}\n` +
-  `Цена: ${md.bold(price)} USDT\n` +
-  `Статус: ${md.italic("актуально")}`;
+  `Символ: ${markdownV2Builder.code(symbol)}\n` +
+  `Цена: ${markdownV2Builder.bold(price)} USDT\n` +
+  `Статус: ${markdownV2Builder.italic("актуально")}`;
 // → "Символ: `BTCUSDT`\nЦена: *1234\.56* USDT\nСтатус: _актуально_"
 
 // С MarkdownV2 парсингом

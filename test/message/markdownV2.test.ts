@@ -2,7 +2,7 @@ import {
   escapeMarkdownV2Text,
   escapeMarkdownV2WithFormatting,
   formatClickableText,
-  md,
+  markdownV2Builder,
 } from "../../src/message/markdownV2";
 
 describe("escapeMarkdownV2Text", () => {
@@ -44,47 +44,47 @@ describe("formatClickableText", () => {
   });
 });
 
-describe("md builder", () => {
+describe("markdownV2Builder", () => {
   it("should create bold text", () => {
-    expect(md.bold("YES")).toBe("*YES*");
+    expect(markdownV2Builder.bold("YES")).toBe("*YES*");
   });
 
   it("should escape special characters inside bold", () => {
-    expect(md.bold("100.5")).toBe("*100\\.5*");
+    expect(markdownV2Builder.bold("100.5")).toBe("*100\\.5*");
   });
 
   it("should escape parentheses and colon inside bold", () => {
-    expect(md.bold("Performance (without commission):")).toBe(
+    expect(markdownV2Builder.bold("Performance (without commission):")).toBe(
       "*Performance \\(without commission\\):*",
     );
   });
 
   it("should create code without escaping content", () => {
-    expect(md.code("BTCUSDT")).toBe("`BTCUSDT`");
-    expect(md.code("2026-03-14 14:30:45")).toBe("`2026-03-14 14:30:45`");
+    expect(markdownV2Builder.code("BTCUSDT")).toBe("`BTCUSDT`");
+    expect(markdownV2Builder.code("2026-03-14 14:30:45")).toBe("`2026-03-14 14:30:45`");
   });
 
   it("should create italic text", () => {
-    expect(md.italic("note")).toBe("_note_");
+    expect(markdownV2Builder.italic("note")).toBe("_note_");
   });
 
   it("should create strikethrough text", () => {
-    expect(md.strikethrough("old")).toBe("~old~");
+    expect(markdownV2Builder.strikethrough("old")).toBe("~old~");
   });
 
   it("should create spoiler text", () => {
-    expect(md.spoiler("hidden")).toBe("||hidden||");
+    expect(markdownV2Builder.spoiler("hidden")).toBe("||hidden||");
   });
 
   it("should create link with escaped text and url", () => {
-    expect(md.link("click", "http://x.com")).toBe(
+    expect(markdownV2Builder.link("click", "http://x.com")).toBe(
       "[click](http://x\\.com)",
     );
   });
 
-  it("should escape text via md.escape", () => {
-    expect(md.escape("+125.50")).toBe("\\+125\\.50");
-    expect(md.escape("2026-03-14")).toBe("2026\\-03\\-14");
+  it("should escape text via markdownV2Builder.escape", () => {
+    expect(markdownV2Builder.escape("+125.50")).toBe("\\+125\\.50");
+    expect(markdownV2Builder.escape("2026-03-14")).toBe("2026\\-03\\-14");
   });
 });
 

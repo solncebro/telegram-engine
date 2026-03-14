@@ -43,7 +43,10 @@ describe("createReporter", () => {
 
       await reporter.reportError("something broke", new Error("oops"));
 
-      expect(broadcaster.sendToAll).toHaveBeenCalledWith("something broke");
+      expect(broadcaster.sendToAll).toHaveBeenCalledWith(
+        "something broke",
+        undefined,
+      );
     });
 
     it("should retry on first failure", async () => {
@@ -58,7 +61,10 @@ describe("createReporter", () => {
       await reporter.reportError("error msg", new Error("test"));
 
       expect(broadcaster.sendToAll).toHaveBeenCalledTimes(2);
-      expect(broadcaster.sendToAll).toHaveBeenCalledWith("error msg (retry)");
+      expect(broadcaster.sendToAll).toHaveBeenCalledWith(
+        "error msg (retry)",
+        undefined,
+      );
     });
 
     it("should not throw when both attempts fail", async () => {

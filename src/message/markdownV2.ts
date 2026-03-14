@@ -88,7 +88,7 @@ const escapeMarkdownV2WithFormatting = (text: string): string => {
   return result;
 };
 
-const md = {
+const markdownV2Builder = {
   bold: (text: string | number): string => `*${escapeMarkdownV2Text(text)}*`,
   italic: (text: string | number): string => `_${escapeMarkdownV2Text(text)}_`,
   code: (text: string | number): string => `\`${String(text)}\``,
@@ -103,5 +103,5 @@ export {
   escapeMarkdownV2Text,
   escapeMarkdownV2WithFormatting,
   formatClickableText,
-  md,
+  markdownV2Builder,
 };

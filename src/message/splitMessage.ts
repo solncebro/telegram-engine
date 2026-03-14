@@ -22,7 +22,7 @@ const splitMessageToChunkList = (
       }
 
       if (lineWithNewline.length > maxLength) {
-        partList.push(line);
+        partList.push(line.trimEnd());
       } else {
         currentPart = lineWithNewline;
       }

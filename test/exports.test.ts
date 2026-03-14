@@ -18,7 +18,7 @@ describe("exports", () => {
     "escapeMarkdownV2Text",
     "escapeMarkdownV2WithFormatting",
     "formatClickableText",
-    "md",
+    "markdownV2Builder",
     "splitMessageToChunkList",
     "createMessageTracker",
     "deleteMessageListById",
@@ -28,6 +28,7 @@ describe("exports", () => {
     "pause",
     "TELEGRAM_MESSAGE_MAX_LENGTH",
     "DEFAULT_BROADCAST_PAUSE_MS",
+    "DEFAULT_MAX_PINNED_COUNT",
   ];
 
   it.each(expectedExportList)("should export %s", (exportName) => {

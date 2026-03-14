@@ -22,7 +22,7 @@ export {
   escapeMarkdownV2Text,
   escapeMarkdownV2WithFormatting,
   formatClickableText,
-  md,
+  markdownV2Builder,
 } from "./message/markdownV2";
 export { splitMessageToChunkList } from "./message/splitMessage";
 export { createMessageTracker } from "./message/messageTracker";
@@ -37,6 +37,7 @@ export { pause } from "./utils/pause";
 export {
   TELEGRAM_MESSAGE_MAX_LENGTH,
   DEFAULT_BROADCAST_PAUSE_MS,
+  DEFAULT_MAX_PINNED_COUNT,
 } from "./utils/constants";
 
 export type {

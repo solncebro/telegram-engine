@@ -1,5 +1,5 @@
 import type { CreateBroadcasterArgs, SendAndPinArgs, Broadcaster } from "../types/broadcast.types";
-import { DEFAULT_BROADCAST_PAUSE_MS } from "../utils/constants";
+import { DEFAULT_BROADCAST_PAUSE_MS, DEFAULT_MAX_PINNED_COUNT } from "../utils/constants";
 import { pause } from "../utils/pause";
 
 const createBroadcaster = ({
@@ -56,7 +56,7 @@ const createBroadcaster = ({
   const sendAndPin = async ({
     message,
     pinnedMessageIdListByChatId,
-    maxPinnedCount = 10,
+    maxPinnedCount = DEFAULT_MAX_PINNED_COUNT,
     useMarkdownV2 = false,
   }: SendAndPinArgs): Promise<void> => {
     const sendPromiseList = recipientList.map(async (peer) => {

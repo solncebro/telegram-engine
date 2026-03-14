@@ -57,7 +57,7 @@ src/index.ts (barrel exports — единственная точка входа)
 |------|-----------|
 | [core-layer.md](.claude/rules/core-layer.md) | createBot, botRegistry, sender, accessControl — жизненный цикл ботов |
 | [menu-layer.md](.claude/rules/menu-layer.md) | callbackEncoder, keyboardBuilder, navigationSchema, menuRouter, actionRouter |
-| [message-and-input.md](.claude/rules/message-and-input.md) | escapeMarkdownV2Text, escapeMarkdownV2WithFormatting, formatClickableText, md builder, splitMessage, messageTracker, deleteMessageList, inputStateManager, inputValidator |
+| [message-and-input.md](.claude/rules/message-and-input.md) | escapeMarkdownV2Text, escapeMarkdownV2WithFormatting, formatClickableText, markdownV2Builder, splitMessage, messageTracker, deleteMessageList, inputStateManager, inputValidator |
 | [broadcast-and-command.md](.claude/rules/broadcast-and-command.md) | broadcaster, reporter, commandRegistrar |
 | [types-and-dependencies.md](.claude/rules/types-and-dependencies.md) | Все типы, граф зависимостей между модулями |
 | [testing-patterns.md](.claude/rules/testing-patterns.md) | Мокирование Telegraf, структура тестов, паттерны |
@@ -71,7 +71,7 @@ src/index.ts (barrel exports — единственная точка входа)
 ### Message модуль — дополнительно
 
 При работе с `src/message/markdownV2.ts`:
-- `escapeMarkdownV2Text` — базовое экранирование, используется в `md.*` методах и как fallback в `escapeMarkdownV2WithFormatting`
+- `escapeMarkdownV2Text` — базовое экранирование, используется в `markdownV2Builder.*` методах и как fallback в `escapeMarkdownV2WithFormatting`
 - `escapeMarkdownV2WithFormatting` — умное экранирование, требует точности в распознавании маркеров. Тесты включают реальные паттерны из `kliner-autotrade-funding`
-- `md` объект — чистые функции без побочных эффектов, каждый метод изолирован и тестируется отдельно
+- `markdownV2Builder` объект — чистые функции без побочных эффектов, каждый метод изолирован и тестируется отдельно
 - Константа `FORMATTING_MARKER_LIST` — порядок маркеров критичен (`` ``` `` проверяется раньше `` ` ``)

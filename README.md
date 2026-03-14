@@ -556,7 +556,7 @@ import {
   escapeMarkdownV2Text,
   escapeMarkdownV2WithFormatting,
   formatClickableText,
-  md,
+  markdownV2Builder,
 } from "@solncebro/telegram-engine";
 
 const price = 1234.56;
@@ -566,11 +566,11 @@ const symbol = "BTCUSDT";
 const text = `Цена ${formatClickableText(symbol)}: ${escapeMarkdownV2Text(price)} USDT`;
 // → "Цена `BTCUSDT`: 1234\.56 USDT"
 
-// Способ 2: Использование md-builder
+// Способ 2: Использование markdownV2Builder
 const message =
-  `Символ: ${md.code(symbol)}\n` +
-  `Цена: ${md.bold(price)} USDT\n` +
-  `Статус: ${md.italic("актуально")}`;
+  `Символ: ${markdownV2Builder.code(symbol)}\n` +
+  `Цена: ${markdownV2Builder.bold(price)} USDT\n` +
+  `Статус: ${markdownV2Builder.italic("актуально")}`;
 // → "Символ: `BTCUSDT`\nЦена: *1234\.56* USDT\nСтатус: _актуально_"
 
 // Способ 3: Для сообщений с уже расставленной разметкой
@@ -594,14 +594,14 @@ await sender.sendMessage({
 
 - **`formatClickableText(text | number): string`** — Оборачивает в backticks для кликабельного inline code в Telegram: `` `BTCUSDT` ``
 
-- **`md` объект-builder:**
-  - `md.bold(text)` → `*text*`
-  - `md.italic(text)` → `_text_`
-  - `md.code(text)` → `` `text` ``
-  - `md.strikethrough(text)` → `~text~`
-  - `md.spoiler(text)` → `||text||`
-  - `md.link(text, url)` → `[text](url)`
-  - `md.escape(text)` → экранирование без маркеров
+- **`markdownV2Builder` объект-builder:**
+  - `markdownV2Builder.bold(text)` → `*text*`
+  - `markdownV2Builder.italic(text)` → `_text_`
+  - `markdownV2Builder.code(text)` → `` `text` ``
+  - `markdownV2Builder.strikethrough(text)` → `~text~`
+  - `markdownV2Builder.spoiler(text)` → `||text||`
+  - `markdownV2Builder.link(text, url)` → `[text](url)`
+  - `markdownV2Builder.escape(text)` → экранирование без маркеров
 
 #### Разбиение длинных сообщений
 
@@ -958,7 +958,7 @@ console.log("Bot started");
 | `escapeMarkdownV2Text` | message | Экранирование спецсимволов |
 | `escapeMarkdownV2WithFormatting` | message | Экранирование с сохранением разметки |
 | `formatClickableText` | message | Оборачивание в backticks |
-| `md` | message | Билдер bold/italic/code/spoiler/link/escape |
+| `markdownV2Builder` | message | Билдер bold/italic/code/spoiler/link/escape |
 | `splitMessageToChunkList` | message | Разбиение по лимиту |
 | `createMessageTracker` | message | Трекинг message ID по чатам |
 | `deleteMessageListById` | message | Пакетное удаление |
@@ -968,3 +968,4 @@ console.log("Bot started");
 | `pause` | utils | `setTimeout` в Promise |
 | `TELEGRAM_MESSAGE_MAX_LENGTH` | utils | 3500 |
 | `DEFAULT_BROADCAST_PAUSE_MS` | utils | 300 |
+| `DEFAULT_MAX_PINNED_COUNT` | utils | 10 |

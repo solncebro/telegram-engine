@@ -1,9 +1,9 @@
 import type { CreateReporterArgs, Reporter } from "../types/broadcast.types";
 
 const createReporter = ({ broadcaster }: CreateReporterArgs): Reporter => {
-  const reportEvent = async (
+  const sendWithRetry = async (
     message: string,
-    useMarkdownV2 = false,
+    useMarkdownV2?: boolean,
   ): Promise<void> => {
     try {
       await broadcaster.sendToAll(message, useMarkdownV2);
@@ -14,17 +14,18 @@ const createReporter = ({ broadcaster }: CreateReporterArgs): Reporter => {
     }
   };
 
+  const reportEvent = async (
+    message: string,
+    useMarkdownV2 = false,
+  ): Promise<void> => {
+    await sendWithRetry(message, useMarkdownV2);
+  };
+
   const reportError = async (
     message: string,
     _error: unknown,
   ): Promise<void> => {
-    try {
-      await broadcaster.sendToAll(message);
-    } catch {
-      try {
-        await broadcaster.sendToAll(`${message} (retry)`);
-      } catch {}
-    }
+    await sendWithRetry(message);
   };
 
   return { reportEvent, reportError };

@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.0
+
+**BREAKING CHANGES**
+
+- **`md` renamed to `markdownV2Builder`** — The `md` export violated the no-abbreviations code style rule. All usages must be updated: `md.bold(...)` → `markdownV2Builder.bold(...)`.
+- **`MAX_RETRY_COUNT` removed** — Dead code, was exported but never imported anywhere.
+- **`DeleteMessageListArgs` type removed** — Dead code, was defined but never used (only `DeleteMessageListByIdArgs` is used).
+
+### Features
+
+- **`DEFAULT_MAX_PINNED_COUNT`** — New named constant (value: 10) exported from utils, used in `broadcaster.sendAndPin()` instead of magic number.
+
+### Improvements
+
+- **reporter.ts** — Deduplicated retry logic: extracted `sendWithRetry` helper inside the closure, reducing ~15 lines of duplicate try-catch code.
+- **splitMessage.ts** — Added `trimEnd()` for oversized lines (consistency with other code paths that already apply `trimEnd()`).
+
+---
+
 ## 0.1.1
 
 Enhanced MarkdownV2 support with intelligent formatting preservation and builder utilities.

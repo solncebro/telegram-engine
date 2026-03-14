@@ -8,12 +8,6 @@ interface MessageTracker {
   cleanup: (chatId: string, excludeMessageId?: number) => number[];
 }
 
-interface DeleteMessageListArgs {
-  chatId: number;
-  messageIdList: number[];
-  onLog?: LogFunction;
-}
-
 interface DeleteMessageListByIdArgs {
   telegram: Telegram;
   chatId: number;
@@ -28,7 +22,6 @@ interface FormattingMarkerItem {
 
 export type {
   MessageTracker,
-  DeleteMessageListArgs,
   DeleteMessageListByIdArgs,
   FormattingMarkerItem,
 };
