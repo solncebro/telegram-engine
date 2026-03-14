@@ -549,6 +549,8 @@ parseCommaSeparatedRange("abc,200");  // { isValid: false, errorMessage: "Invali
 
 #### MarkdownV2
 
+Полный набор утилит для безопасного форматирования сообщений в MarkdownV2:
+
 ```typescript
 import {
   escapeMarkdownV2Text,
@@ -560,23 +562,46 @@ import {
 const price = 1234.56;
 const symbol = "BTCUSDT";
 
+// Способ 1: Экранирование + форматирование
 const text = `Цена ${formatClickableText(symbol)}: ${escapeMarkdownV2Text(price)} USDT`;
 // → "Цена `BTCUSDT`: 1234\.56 USDT"
 
+// Способ 2: Использование md-builder
+const message =
+  `Символ: ${md.code(symbol)}\n` +
+  `Цена: ${md.bold(price)} USDT\n` +
+  `Статус: ${md.italic("актуально")}`;
+// → "Символ: `BTCUSDT`\nЦена: *1234\.56* USDT\nСтатус: _актуально_"
+
+// Способ 3: Для сообщений с уже расставленной разметкой
+const settingsMessage = "Order Volume: *100 USDT* (was: 50 USDT)";
+const escaped = escapeMarkdownV2WithFormatting(settingsMessage);
+// → "Order Volume: *100 USDT* \\(was: 50 USDT\\)"
+// Bold сохранён, скобки экранированы
+
 await sender.sendMessage({
-  message: text,
+  message,
   peer: chatId,
   useMarkdownV2: true,
 });
 ```
 
-`escapeMarkdownV2Text` экранирует все 18 спецсимволов MarkdownV2: `_ * [ ] ( ) ~ \` > # + - = | { } . !`
+**Функции:**
 
-`escapeMarkdownV2WithFormatting` экранирует текст, сохраняя уже расставленные маркеры форматирования (`*bold*`, `` `code` ``, `||spoiler||` и т.д.).
+- **`escapeMarkdownV2Text(text | number): string`** — Экранирует все 18 спецсимволов: `_ * [ ] ( ) ~ ` > # + - = | { } . !` Используется когда текст не должен содержать форматирование.
 
-`formatClickableText` оборачивает в обратные кавычки — в Telegram такой текст можно нажать и скопировать.
+- **`escapeMarkdownV2WithFormatting(text): string`** — Умное экранирование. Распознаёт пары маркеров (`*bold*`, `` `code` ``, `||spoiler||`, `_italic_`, `~strikethrough~`) и сохраняет их, экранируя только содержимое. Идеально для сообщений где разметка уже расставлена (например, Firebase settings, отчёты).
 
-`md` — билдер: `md.bold()`, `md.italic()`, `md.code()`, `md.strikethrough()`, `md.spoiler()`, `md.link(text, url)`, `md.escape()`.
+- **`formatClickableText(text | number): string`** — Оборачивает в backticks для кликабельного inline code в Telegram: `` `BTCUSDT` ``
+
+- **`md` объект-builder:**
+  - `md.bold(text)` → `*text*`
+  - `md.italic(text)` → `_text_`
+  - `md.code(text)` → `` `text` ``
+  - `md.strikethrough(text)` → `~text~`
+  - `md.spoiler(text)` → `||text||`
+  - `md.link(text, url)` → `[text](url)`
+  - `md.escape(text)` → экранирование без маркеров
 
 #### Разбиение длинных сообщений
 

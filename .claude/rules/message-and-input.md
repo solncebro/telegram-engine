@@ -12,13 +12,77 @@
 
 **`escapeMarkdownV2WithFormatting(text: string): string`**
 
-Экранирует текст, сохраняя разметку: распознаёт пары маркеров `` ``` ` `` (code block), `` ` `` (inline code), `||` (spoiler), `*`, `_`, `~` (bold/italic/strikethrough). Внутри пар контент экранируется (кроме code block — остаётся как есть). Вне пар — как `escapeMarkdownV2Text`. Для сообщений с уже расставленным форматированием.
+Экранирует текст, сохраняя разметку: распознаёт пары маркеров `` ``` `` (code block), `` ` `` (inline code), `||` (spoiler), `*`, `_`, `~` (bold/italic/strikethrough). Внутри пар контент экранируется (кроме code block — остаётся как есть). Вне пар — как `escapeMarkdownV2Text`. Для сообщений с уже расставленным форматированием.
+
+**Примеры:**
+```typescript
+// Сообщение с bold и скобками
+const input = "Order Volume: *100 USDT* (was: 50 USDT)";
+escapeMarkdownV2WithFormatting(input);
+// → "Order Volume: *100 USDT* \\(was: 50 USDT\\)"
+// Bold сохранён, скобки экранированы
+
+// Сообщение с inline code и числами
+const systemMsg = "Latest: `2026-03-14 14:30:45`\nTotal: 42";
+escapeMarkdownV2WithFormatting(systemMsg);
+// → "Latest: `2026-03-14 14:30:45`\nTotal: 42"
+// Code block не изменён, число не экранировано
+
+// Смешанное форматирование
+const report = "*System State*\nFunding: *0.05%* (24h)\nStatus: `OK`";
+escapeMarkdownV2WithFormatting(report);
+// → "*System State*\nFunding: *0\\.05%* \\(24h\\)\nStatus: `OK`"
+```
+
+**Алгоритм:**
+1. Проходит по тексту слева направо.
+2. При встрече маркера (открывающего и закрывающего, например `*text*`) — содержимое экранируется посимвольно, но маркеры сохраняются.
+3. Для code block'ов (`` ` `` и `` ``` ``) — содержимое остаётся как есть (нет экранирования).
+4. Вне маркеров — экранирует все спецсимволы как `escapeMarkdownV2Text`.
+5. Если маркер непарный (например, одна `*` посередине) — экранируется как спецсимвол.
 
 **`formatClickableText(text: string | number): string`**
 
 Оборачивает текст в обратные кавычки для inline code: `` `BTCUSDT` ``. Используется для кликабельного текста в Telegram (пользователь может нажать и скопировать).
 
-**`md`** — объект-билдер для MarkdownV2: `bold`, `italic`, `code`, `strikethrough`, `spoiler`, `link(text, url)`, `escape`. Каждый метод экранирует переданный текст и оборачивает в соответствующие маркеры.
+```typescript
+formatClickableText("BTCUSDT");  // → "`BTCUSDT`"
+formatClickableText(42);         // → "`42`"
+```
+
+**`md`** — объект-билдер для MarkdownV2. Каждый метод экранирует переданный текст и оборачивает в соответствующие маркеры.
+
+**Методы:**
+
+| Метод | Результат | Пример |
+|-------|-----------|--------|
+| `md.bold(text)` | `*text*` с экранированием | `md.bold("100.5")` → `*100\.5*` |
+| `md.italic(text)` | `_text_` с экранированием | `md.italic("note")` → `_note_` |
+| `md.code(text)` | `` `text` `` без экранирования | `md.code("BTCUSDT")` → `` `BTCUSDT` `` |
+| `md.strikethrough(text)` | `~text~` с экранированием | `md.strikethrough("old")` → `~old~` |
+| `md.spoiler(text)` | `\|\|text\|\|` с экранированием | `md.spoiler("hidden")` → `\|\|hidden\|\|` |
+| `md.link(text, url)` | `[text](url)` с экранированием обоих | `md.link("click", "http://x.com")` → `[click](http://x\.com)` |
+| `md.escape(text)` | Экранирование без маркеров | `md.escape("+125.50")` → `\+125\.50` |
+
+**Примеры использования:**
+```typescript
+const price = 1234.56;
+const symbol = "BTCUSDT";
+
+// Комбинирование bilderа
+const message =
+  `Символ: ${md.code(symbol)}\n` +
+  `Цена: ${md.bold(price)} USDT\n` +
+  `Статус: ${md.italic("актуально")}`;
+// → "Символ: `BTCUSDT`\nЦена: *1234\.56* USDT\nСтатус: _актуально_"
+
+// С MarkdownV2 парсингом
+await sender.sendMessage({
+  message,
+  peer: chatId,
+  useMarkdownV2: true,
+});
+```
 
 ### splitMessage.ts — Разбиение длинных сообщений
 

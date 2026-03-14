@@ -9,7 +9,7 @@
 | `bot.types.ts` | CreateBotArgs, BotInstance, AccessControl, TelegramSender, BotRegistry, LogFunction, SendMessageArgs, EditMessageArgs |
 | `menu.types.ts` | FieldConfig, CallbackEncoder, ButtonConfig, KeyboardBuilder, NavigationStepSchema, NavigationSchema, MenuStepResult, MenuRouter, ActionRouter, StepHandlerMap, ActionHandlerMap |
 | `input.types.ts` | InputState, InputStateManager, ValidateIntegerAndPositiveResult, ParseCommaSeparatedRangeResult |
-| `message.types.ts` | MessageTracker, DeleteMessageListArgs, DeleteMessageListByIdArgs, FormattingMarkerItem |
+| `message.types.ts` | MessageTracker, DeleteMessageListByIdArgs, FormattingMarkerItem |
 | `broadcast.types.ts` | CreateBroadcasterArgs, SendAndPinArgs, Broadcaster, Reporter |
 | `command.types.ts` | CommandConfig, RegisterBotCommandsArgs |
 
