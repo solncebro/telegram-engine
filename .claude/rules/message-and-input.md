@@ -41,6 +41,20 @@ escapeMarkdownV2WithFormatting(report);
 4. Вне маркеров — экранирует все спецсимволы как `escapeMarkdownV2Text`.
 5. Если маркер непарный (например, одна `*` посередине) — экранируется как спецсимвол.
 
+### telegramEditError.ts — Безвредные ошибки правки
+
+**`isBenignTelegramEditError(error: unknown): boolean`**
+
+Распознаёт ошибки Telegram, которые можно безопасно игнорировать при edit/delete: `message is not modified`, `message to edit not found`, `message to delete not found`, `message can't be deleted`, `query is too old`, `MESSAGE_ID_INVALID`.
+
+Используется в `menuReplacer` и доступен потребителю для собственной обработки.
+
+### editMessageWithFallback.ts — Правка с откатом
+
+**`editMessageWithFallback(ctx, text, extra?)`**
+
+Пытается `ctx.editMessageCaption`. При ошибке «нет caption / нет text» откатывается на `ctx.editMessageText`. Остальные ошибки пробрасываются.
+
 **`formatClickableText(text: string | number): string`**
 
 Оборачивает текст в обратные кавычки для inline code: `` `BTCUSDT` ``. Используется для кликабельного текста в Telegram (пользователь может нажать и скопировать).

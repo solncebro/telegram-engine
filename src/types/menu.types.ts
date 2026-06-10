@@ -73,6 +73,46 @@ interface ActionRouter<TAction extends string, TData> {
   ) => Promise<MenuStepResult>;
 }
 
+interface BuildMessageIdListToDeleteArgs {
+  trackedIdList: number[];
+  callbackMessageId?: number;
+}
+
+interface BuildPresetDisplayListArgs<T> {
+  recentList: T[];
+  defaultList: T[];
+  maxCount: number;
+  isEqual?: (a: T, b: T) => boolean;
+}
+
+interface BuildPresetKeyboardArgs<T extends number | string> {
+  valueList: readonly T[];
+  callbackPrefix: string;
+  formatText: (value: T) => string;
+  maxCount?: number;
+}
+
+interface CreateMenuTreeArgs<TScreen extends string> {
+  parentByScreen: Record<TScreen, TScreen | null>;
+  resolveParent?: (screen: TScreen, staticParent: TScreen | null) => TScreen | null;
+}
+
+interface MenuTreeFooterLabels {
+  backText: string;
+  backCallbackData: string;
+  closeText: string;
+  closeCallbackData: string;
+}
+
+interface MenuTree<TScreen extends string> {
+  getParent: (screen: TScreen) => TScreen | null;
+  isValidScreen: (value: string) => value is TScreen;
+  buildFooterRow: (
+    screen: TScreen,
+    labels: MenuTreeFooterLabels,
+  ) => Array<{ text: string; callback_data: string }>;
+}
+
 export type {
   FieldConfig,
   CallbackEncoder,
@@ -87,4 +127,10 @@ export type {
   MenuRouter,
   ActionHandlerMap,
   ActionRouter,
+  BuildMessageIdListToDeleteArgs,
+  BuildPresetDisplayListArgs,
+  BuildPresetKeyboardArgs,
+  CreateMenuTreeArgs,
+  MenuTreeFooterLabels,
+  MenuTree,
 };

@@ -936,6 +936,285 @@ console.log("Bot started");
 
 ---
 
+## UI-движок: меню, экраны и пошаговые диалоги
+
+Высокоуровневый слой поверх примитивов. Приложение **объявляет** своё меню (экраны, кнопки, шаги диалога) как данные и передаёт свои обработчики; библиотека выполняет всю механику взаимодействия одинаково в любом приложении. Доменной (например, торговой) логики библиотека не содержит — всё специфичное приходит параметрами.
+
+### Канонические операции (одно поведение везде)
+
+| Операция | Что делает | Чем вызывается |
+|---|---|---|
+| Заменить экран / навигация | удалить прошлые сообщения + отправить новое (текст / фото / клавиатура) | `menuReplacer.replaceMenu(ctx, { text, replyMarkup })` |
+| Закрыть меню | удалить все отслеживаемые сообщения, ничего не слать | `menuReplacer.replaceMenu(ctx, { shouldCloseOnly: true })` |
+| Снять клавиатуру (оставить сообщение) | убрать кнопки, текст оставить как историю | `dismissKeyboard(ctx)` |
+| Загрузка (callback-кнопка) | мгновенный отклик: убрать клавиатуру либо показать `⏳`, затем результат | `loadingController.startCallbackLoading(ctx, mode)` |
+| Загрузка (reply-кнопка) | удалить прошлое меню → `⏳` → результат | `loadingController.startHearsLoading(ctx)` |
+| Назад | родитель экрана по дереву → заменить экран | `menuTree.getParent(screen)` |
+
+### Шаг 1. Поверхность (один или несколько ботов)
+
+`resolveSurface(ctx)` сообщает движку, в каком боте/чате работать и какой трекер сообщений использовать. Для одного бота — простая функция; для нескольких — выбор по токену бота из `ctx`.
+
+```typescript
+import {
+  Context,
+  createBot,
+  createMessageTracker,
+  createMenuReplacer,
+  createLoadingController,
+  type MenuSurface,
+} from "@solncebro/telegram-engine";
+
+const bot = createBot({ botToken: "YOUR_TOKEN", botName: "DemoBot" });
+const chatId = "123456789";
+const tracker = createMessageTracker();
+
+const resolveSurface = (): MenuSurface | null => ({
+  telegram: bot.bot.telegram,
+  chatId,
+  tracker,
+});
+
+const onLog = (level: "warn" | "error", message: string, meta?: Record<string, unknown>) =>
+  console[level](`[Demo] ${message}`, meta ?? {});
+
+const menuReplacer = createMenuReplacer({ resolveSurface, onLog });
+const loadingController = createLoadingController({
+  menuReplacer,
+  resolveSurface,
+  defaultLoadingText: "⏳ Загрузка...",
+  onLog,
+});
+```
+
+### Шаг 2. Дерево экранов
+
+Приложение описывает дерево как карту «экран → родитель». Библиотека резолвит родителя, проверяет валидность экрана и строит нижний ряд `[Назад][Закрыть]`. Что показывать на каждом экране — задаёт приложение (функции `render`).
+
+```typescript
+import {
+  createMenuTree,
+  buildDismissReplyMarkup,
+  type RawInlineButton,
+} from "@solncebro/telegram-engine";
+
+type Screen = "root" | "settings" | "notifications" | "about";
+
+const menuTree = createMenuTree<Screen>({
+  parentByScreen: {
+    root: null,
+    settings: "root",
+    notifications: "settings",
+    about: "root",
+  },
+});
+
+const FOOTER_LABELS = {
+  backText: "⬅️ Назад",
+  backCallbackData: "nav_back",
+  closeText: "✖️ Закрыть",
+  closeCallbackData: "nav_close",
+};
+
+// render каждого экрана — это прикладные данные: заголовок + кнопки.
+function renderScreen(screen: Screen): { text: string; buttons: RawInlineButton[][] } {
+  const footer = menuTree.buildFooterRow(screen, FOOTER_LABELS);
+
+  switch (screen) {
+    case "root":
+      return {
+        text: "Главное меню",
+        buttons: [
+          [{ text: "⚙️ Настройки", callback_data: "open:settings" }],
+          [{ text: "ℹ️ О боте", callback_data: "open:about" }],
+          footer,
+        ],
+      };
+    case "settings":
+      return {
+        text: "Настройки",
+        buttons: [[{ text: "🔔 Уведомления", callback_data: "open:notifications" }], footer],
+      };
+    case "notifications":
+      return { text: "Уведомления: включены", buttons: [footer] };
+    case "about":
+      return { text: "Демо-бот на @solncebro/telegram-engine", buttons: [footer] };
+  }
+}
+
+async function showScreen(ctx: Context, screen: Screen): Promise<void> {
+  const { text, buttons } = renderScreen(screen);
+  await menuReplacer.replaceMenu(ctx, {
+    text,
+    replyMarkup: { inline_keyboard: buttons },
+  });
+}
+```
+
+### Шаг 3. Привязка кнопок (это делает приложение)
+
+Регистрация кнопок и сами обработчики — прикладной код. Они «передаются внутрь»: дергают канонические операции движка.
+
+```typescript
+// Открыть экран
+bot.bot.action(/^open:(.+)/, async (ctx) => {
+  await loadingController.startCallbackLoading(ctx, "strip-keyboard");
+  const target = ctx.match[1];
+
+  if (menuTree.isValidScreen(target)) {
+    await showScreen(ctx, target);
+  }
+});
+
+// Назад
+bot.bot.action("nav_back", async (ctx) => {
+  await loadingController.startCallbackLoading(ctx, "strip-keyboard");
+  // приложение хранит текущий экран как ему удобно; здесь для примера — из callback
+  const current = "notifications" as Screen;
+  const parent = menuTree.getParent(current) ?? "root";
+  await showScreen(ctx, parent);
+});
+
+// Закрыть меню
+bot.bot.action("nav_close", async (ctx) => {
+  await ctx.answerCbQuery();
+  await menuReplacer.replaceMenu(ctx, { shouldCloseOnly: true });
+});
+```
+
+### Шаг 4. Кнопки-заготовки с памятью значений
+
+Готовый ряд кнопок из дефолтов + недавно введённых значений (история не дублируется).
+
+```typescript
+import {
+  buildPresetKeyboard,
+  buildPresetDisplayList,
+  promoteToFront,
+} from "@solncebro/telegram-engine";
+
+let recentAmountList: number[] = [];
+
+function buildAmountKeyboard() {
+  const displayList = buildPresetDisplayList({
+    recentList: recentAmountList,
+    defaultList: [100, 500, 1000],
+    maxCount: 5,
+  });
+
+  return buildPresetKeyboard({
+    valueList: displayList,
+    callbackPrefix: "amount",
+    formatText: (value) => `$${value}`,
+  });
+}
+
+// при выборе значения — продвинуть его в начало истории
+function rememberAmount(value: number): void {
+  recentAmountList = promoteToFront(recentAmountList, value, 5);
+}
+```
+
+### Шаг 5. Пошаговый диалог (движок шагов)
+
+Движок хранит текущий шаг и собранные данные и переключает шаги. Сами шаги, тексты и проверки — целиком в приложении. Тип состояния (`OrderState`) и набор шагов объявляет приложение.
+
+```typescript
+import { createWizard } from "@solncebro/telegram-engine";
+
+interface OrderState {
+  step: "name" | "amount" | "confirm";
+  name?: string;
+  amount?: number;
+}
+
+const wizard = createWizard<OrderState>();
+const KEY = "order"; // один диалог на чат; для нескольких чатов — ключ = chatId
+
+// Старт диалога (например, по reply-кнопке "Создать")
+async function startCreate(ctx: Context): Promise<void> {
+  wizard.start(KEY, { step: "name" });
+  await menuReplacer.replaceMenu(ctx, { text: "Введите название:", isPlainText: true });
+}
+
+// Маршрутизация текстового ввода по текущему шагу (это решает приложение)
+bot.bot.on("text", async (ctx) => {
+  const state = wizard.get(KEY);
+
+  if (state === undefined) {
+    return; // диалог не активен
+  }
+
+  const value = ctx.message.text.trim();
+
+  if (state.step === "name") {
+    state.name = value; // движок хранит объект по ссылке — мутация сохраняется
+    state.step = "amount";
+    await menuReplacer.replaceMenu(ctx, {
+      text: "Сумма:",
+      isPlainText: true,
+      replyMarkup: { inline_keyboard: buildAmountKeyboard() },
+    });
+    return;
+  }
+
+  if (state.step === "amount") {
+    const amount = Number(value);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      await menuReplacer.replaceMenu(ctx, { text: "Нужно положительное число. Сумма:", isPlainText: true });
+      return; // остаёмся на том же шаге
+    }
+    rememberAmount(amount);
+    wizard.patch(KEY, { step: "confirm", amount });
+    await menuReplacer.replaceMenu(ctx, {
+      text: `Создать «${state.name}» на $${amount}?`,
+      replyMarkup: { inline_keyboard: [[
+        { text: "✅ Да", callback_data: "order_confirm" },
+        { text: "✖️ Отмена", callback_data: "order_cancel" },
+      ]] },
+    });
+  }
+});
+
+// Кнопка из заготовок суммы
+bot.bot.action(/^amount:(\d+)/, async (ctx) => {
+  const state = wizard.get(KEY);
+  if (state?.step !== "amount") {
+    await ctx.answerCbQuery("Сессия истекла");
+    return;
+  }
+  await loadingController.startCallbackLoading(ctx, "strip-keyboard");
+  const amount = Number(ctx.match[1]);
+  rememberAmount(amount);
+  wizard.patch(KEY, { step: "confirm", amount });
+  await menuReplacer.replaceMenu(ctx, {
+    text: `Создать «${state.name}» на $${amount}?`,
+    replyMarkup: { inline_keyboard: [[
+      { text: "✅ Да", callback_data: "order_confirm" },
+      { text: "✖️ Отмена", callback_data: "order_cancel" },
+    ]] },
+  });
+});
+
+bot.bot.action("order_confirm", async (ctx) => {
+  const loading = await loadingController.startCallbackLoading(ctx, "replace-text");
+  const state = wizard.get(KEY);
+  // ...прикладное действие (сохранить, вызвать API и т.д.)...
+  wizard.reset(KEY);
+  await loading.finalize(`Создано: ${state?.name} ($${state?.amount})`);
+});
+
+bot.bot.action("order_cancel", async (ctx) => {
+  await ctx.answerCbQuery();
+  wizard.reset(KEY);
+  await menuReplacer.replaceMenu(ctx, { shouldCloseOnly: true });
+});
+```
+
+Этого набора достаточно, чтобы собрать любое меню и любой пошаговый диалог: приложение описывает экраны, кнопки и шаги как данные, а механика взаимодействия (появление/замена/закрытие сообщений, загрузка, навигация, хранение шагов) приходит из библиотеки в едином виде.
+
+---
+
 ## API Reference
 
 ### Экспорты
@@ -943,7 +1222,8 @@ console.log("Bot started");
 | Функция | Модуль | Описание |
 |---------|--------|----------|
 | `createBotRegistry` | core | Реестр N ботов с общим access control |
-| `createBot` | core | Одиночный Telegraf-инстанс |
+| `createBot` | core | Одиночный Telegraf-инстанс (с crash guard) |
+| `applyBotCrashGuard` | core | Защита long polling от падения одного handler'а |
 | `createSender` | core | Примитивы отправки, привязанные к боту |
 | `createAccessControl` | core | Белый список peer ID |
 | `createCallbackEncoder` | menu | Кодирование callback_data (64-байтный лимит) |
@@ -951,6 +1231,18 @@ console.log("Bot started");
 | `createNavigationSchema` | menu | Граф навигации с валидацией |
 | `createMenuRouter` | menu | Роутер шагов меню |
 | `createActionRouter` | menu | Роутер действий |
+| `createMenuTree` | menu | Дерево экранов: родитель / валидация / ряд `[Назад][Закрыть]` |
+| `createMenuReplacer` | menu | Жизненный цикл сообщений: заменить экран / закрыть / удалить отслеживаемые |
+| `createLoadingController` | menu | Индикатор загрузки для callback- и reply-кнопок (`LoadingHandle`) |
+| `buildDismissReplyMarkup` | menu | Клавиатура из одной кнопки «Закрыть» |
+| `dismissKeyboard` | menu | Снять inline-клавиатуру, сообщение оставить |
+| `createWizard` | menu | Движок шагов: хранит шаг + данные, переключает шаги |
+| `buildPresetKeyboard` | menu | Ряд кнопок-заготовок из списка значений |
+| `buildPresetDisplayList` | menu | Слияние «недавние + дефолты» без дублей |
+| `promoteToFront` | menu | Продвинуть значение в начало истории |
+| `buildMessageIdListToDelete` | menu | Список ID на удаление (трекинг + callback-сообщение) |
+| `isBenignTelegramEditError` | message | Распознать безвредную ошибку правки/удаления |
+| `editMessageWithFallback` | message | Правка caption → откат на правку текста |
 | `createInputStateManager` | input | Состояние ввода пользователя |
 | `validatePositiveNumber` | input | Проверка `> 0` |
 | `validateIntegerAndPositive` | input | Проверка целое + положительное |

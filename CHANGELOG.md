@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.3.0
+
+Menu lifecycle toolkit, wizard sessions, crash guard for long polling, and resilient message editing.
+
+### Features
+
+**Core**
+- **`applyBotCrashGuard`** — Registers `bot.catch` so a single failing handler does not abort long polling for the entire bot. `createBot` applies it automatically; optional `onError` receives the error and the failing update.
+- **`BotCrashGuardArgs`** — Type for crash guard configuration.
+
+**Menu — lifecycle & navigation**
+- **`createMenuTree`** — Screen tree over `createNavigationSchema`: parent lookup, optional dynamic parent resolver, and a standard `[Back][Close]` footer row.
+- **`createMenuReplacer`** — Menu message lifecycle: replace screen, close only, delete tracked messages; benign edit/delete errors are ignored via `isBenignTelegramEditError`.
+- **`createLoadingController`** — Loading indicator for callback and reply buttons (`LoadingHandle` with `finalize`).
+- **`buildDismissReplyMarkup`** / **`dismissKeyboard`** — Remove inline keyboard while keeping message text.
+- **`createWizard`** — Generic multi-step session store keyed by chat (or any string key): `start`, `get`, `patch`, `reset`, `isActive`.
+- **`buildPresetKeyboard`** / **`buildPresetDisplayList`** / **`promoteToFront`** — Preset value buttons and recent-value list helpers.
+- **`buildMessageIdListToDelete`** — Builds message ID list for cleanup (tracked IDs + callback message).
+
+**Message**
+- **`isBenignTelegramEditError`** — Detects harmless Telegram edit/delete errors (not modified, not found, query too old, etc.).
+- **`editMessageWithFallback`** — Tries `editMessageCaption`, falls back to `editMessageText` when caption/text mismatch.
+
+**Types**
+- **`keyboard.types.ts`** — `RawInlineButton`, `RawInlineKeyboardMarkup`.
+- **`lifecycle.types.ts`** — `MenuSurface`, `MenuReplacer`, `LoadingController`, `BuildDismissReplyMarkupArgs`, and related types.
+- **`wizard.types.ts`** — `Wizard<TState>`.
+- Extended **`menu.types.ts`** — `CreateMenuTreeArgs`, `MenuTree`, `BuildPresetKeyboardArgs`, and related types.
+
+### Improvements
+
+- **`createBot`** — Crash guard is applied on every new bot instance.
+- **README** — Full guide for menu lifecycle, wizard flows, preset keyboards, and updated API reference table.
+
+---
+
 ## 0.2.0
 
 **BREAKING CHANGES**

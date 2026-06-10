@@ -4,6 +4,7 @@ jest.mock("telegraf", () => ({
   Telegraf: jest.fn().mockImplementation(() => ({
     launch: jest.fn().mockResolvedValue(undefined),
     stop: jest.fn(),
+    catch: jest.fn(),
     telegram: {},
   })),
 }));
@@ -36,6 +37,7 @@ describe("createBot", () => {
     Telegraf.mockImplementationOnce(() => ({
       launch: jest.fn().mockRejectedValue(new Error("launch failed")),
       stop: jest.fn(),
+      catch: jest.fn(),
       telegram: {},
     }));
 
@@ -60,6 +62,7 @@ describe("createBot", () => {
     Telegraf.mockImplementationOnce(() => ({
       launch: jest.fn().mockRejectedValue(new Error("launch failed")),
       stop: jest.fn(),
+      catch: jest.fn(),
       telegram: {},
     }));
 

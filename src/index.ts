@@ -1,6 +1,7 @@
 export { Context, Markup, Telegraf } from "telegraf";
 
 export { createBot } from "./core/createBot";
+export { applyBotCrashGuard } from "./core/botCrashGuard";
 export { createBotRegistry } from "./core/botRegistry";
 export { createSender } from "./core/sender";
 export { createAccessControl } from "./core/accessControl";
@@ -10,6 +11,17 @@ export { createKeyboardBuilder } from "./menu/keyboardBuilder";
 export { createMenuRouter } from "./menu/menuRouter";
 export { createActionRouter } from "./menu/actionRouter";
 export { createNavigationSchema } from "./menu/navigationSchema";
+export { buildMessageIdListToDelete } from "./menu/menuMessageList";
+export { promoteToFront, buildPresetDisplayList } from "./menu/recentList";
+export { buildPresetKeyboard } from "./menu/presetKeyboard";
+export { createMenuTree } from "./menu/menuTree";
+export { createMenuReplacer } from "./menu/menuReplacer";
+export { createLoadingController } from "./menu/loadingController";
+export {
+  buildDismissReplyMarkup,
+  dismissKeyboard,
+} from "./menu/dismissKeyboard";
+export { createWizard } from "./menu/wizard";
 
 export { createInputStateManager } from "./input/inputStateManager";
 export {
@@ -27,6 +39,8 @@ export {
 export { splitMessageToChunkList } from "./message/splitMessage";
 export { createMessageTracker } from "./message/messageTracker";
 export { deleteMessageListById } from "./message/deleteMessageList";
+export { isBenignTelegramEditError } from "./message/telegramEditError";
+export { editMessageWithFallback } from "./message/editMessageWithFallback";
 
 export { createBroadcaster } from "./broadcast/broadcaster";
 export { createReporter } from "./broadcast/reporter";
@@ -55,6 +69,8 @@ export type {
   BotRegistry,
 } from "./types/bot.types";
 
+export type { BotCrashGuardArgs } from "./core/botCrashGuard";
+
 export type {
   FieldConfig,
   CallbackEncoder,
@@ -69,7 +85,35 @@ export type {
   MenuRouter,
   ActionHandlerMap,
   ActionRouter,
+  BuildMessageIdListToDeleteArgs,
+  BuildPresetDisplayListArgs,
+  BuildPresetKeyboardArgs,
+  CreateMenuTreeArgs,
+  MenuTreeFooterLabels,
+  MenuTree,
 } from "./types/menu.types";
+
+export type {
+  RawInlineButton,
+  RawInlineKeyboardMarkup,
+} from "./types/keyboard.types";
+
+export type {
+  MenuSurface,
+  MenuLogLevel,
+  MenuLogFunction,
+  ResolveSurface,
+  ReplaceMenuArgs,
+  CreateMenuReplacerArgs,
+  MenuReplacer,
+  LoadingMode,
+  LoadingHandle,
+  CreateLoadingControllerArgs,
+  LoadingController,
+  BuildDismissReplyMarkupArgs,
+} from "./types/lifecycle.types";
+
+export type { Wizard } from "./types/wizard.types";
 
 export type {
   InputState,

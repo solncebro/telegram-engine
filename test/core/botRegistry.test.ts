@@ -4,6 +4,7 @@ jest.mock("telegraf", () => ({
   Telegraf: jest.fn().mockImplementation(() => ({
     launch: jest.fn().mockResolvedValue(undefined),
     stop: jest.fn(),
+    catch: jest.fn(),
     telegram: {
       sendMessage: jest.fn().mockResolvedValue({ message_id: 1 }),
       pinChatMessage: jest.fn(),

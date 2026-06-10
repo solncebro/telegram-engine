@@ -23,11 +23,24 @@ createBot({ botToken, botName, onError? }) → BotInstance
 
 Создаёт Telegraf-инстанс. **Не вызывает `launch()` автоматически** — потребитель решает когда запускать.
 
+При создании автоматически вызывает `applyBotCrashGuard` — один упавший handler не останавливает long polling для всего бота.
+
 Возвращает:
 - `bot` — сырой Telegraf-инстанс для регистрации хендлеров.
 - `botName` — идентификатор бота в реестре.
 - `launch()` — запуск polling. При ошибке: если передан `onError` — вызывает его, иначе `throw`.
 - `stop(reason?)` — остановка бота.
+
+## botCrashGuard.ts
+
+```
+applyBotCrashGuard(bot, { onError? }) → void
+```
+
+Регистрирует `bot.catch`, который логирует ошибку через `onError` и **не re-throw'ит**. Без этого дефолтный error handler Telegraf прерывает polling loop навсегда после первой необработанной ошибки в handler'е.
+
+- `onError(error, update)` — опциональный callback с ошибкой и `ctx.update` упавшего handler'а.
+- Вызывается автоматически из `createBot`; можно вызвать отдельно для сырого Telegraf-инстанса.
 
 ## sender.ts
 

@@ -111,3 +111,60 @@ createActionRouter<TAction, TData>(actionHandlerMap) → ActionRouter<TAction, T
   keyboard: InlineKeyboard,  // Telegraf inline-клавиатура
 }
 ```
+
+## menuTree.ts — Дерево экранов
+
+```
+createMenuTree<TScreen>({ parentByScreen, resolveParent?, footerLabels? }) → MenuTree<TScreen>
+```
+
+Обёртка над `createNavigationSchema` для flat-дерева экранов без параметров шага.
+
+- `parentByScreen` — `Record<TScreen, TScreen | null>`: статический родитель каждого экрана.
+- `resolveParent?(screen, staticParent)` — опциональный динамический resolver поверх статического.
+- `getParent(screen)` → `TScreen | null`.
+- `buildFooterRow(screen, onClose)` → `RawInlineButton[]` — стандартный ряд `[Back][Close]`.
+
+## menuReplacer.ts — Жизненный цикл сообщений меню
+
+```
+createMenuReplacer({ resolveSurface, onLog? }) → MenuReplacer
+```
+
+Управляет появлением, заменой и закрытием inline-меню.
+
+- `resolveSurface(ctx)` → `MenuSurface` (`chatId`, `telegram`, `trackedMessageIdList`).
+- `replaceMenu(ctx, args)` — заменить экран или закрыть (`shouldCloseOnly`). Удаляет tracked + callback message, отправляет новое.
+- Безвредные ошибки edit/delete игнорируются через `isBenignTelegramEditError`.
+
+## loadingController.ts — Индикатор загрузки
+
+```
+createLoadingController({ menuReplacer, onLog? }) → LoadingController
+```
+
+- `startCallbackLoading(ctx, loadingText)` → `LoadingHandle` — показывает loading-сообщение, возвращает handle.
+- `LoadingHandle.finalize(text)` — заменяет loading на финальный текст.
+- `startReplyLoading(ctx, loadingText)` — аналог для reply-кнопок.
+
+## dismissKeyboard.ts — Снятие клавиатуры
+
+- `buildDismissReplyMarkup({ closeText? })` → `RawInlineKeyboardMarkup` — одна кнопка «Закрыть».
+- `dismissKeyboard(ctx)` — убирает inline-клавиатуру, текст сообщения остаётся.
+
+## wizard.ts — Многошаговые сессии
+
+```
+createWizard<TState>() → Wizard<TState>
+```
+
+Хранит шаг + накопленные данные по ключу (например, chatId). Приложение определяет shape `TState` и переходы.
+
+- `start(key, state)` / `get(key)` / `patch(key, partial)` / `reset(key)` / `isActive(key)`.
+
+## presetKeyboard.ts / recentList.ts / menuMessageList.ts — Вспомогательные утилиты
+
+- `buildPresetKeyboard({ valueList, ... })` — ряд кнопок-заготовок из списка значений.
+- `buildPresetDisplayList({ recentList, defaultList, maxCount })` — слияние «недавние + дефолты» без дублей.
+- `promoteToFront(list, value, maxCount)` — продвигает значение в начало истории.
+- `buildMessageIdListToDelete({ trackedIdList, callbackMessageId? })` — список ID для удаления при замене экрана.
