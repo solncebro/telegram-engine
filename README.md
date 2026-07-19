@@ -182,6 +182,15 @@ const messageId = await sender.sendMessage({
 await sender.pinMessage("123456789", messageId as number);
 await sender.unpinMessage("123456789", messageId as number);
 
+// Отправка с inline-клавиатурой
+await sender.sendMessage({
+  message: "Выберите действие",
+  peer: "123456789",
+  replyMarkup: {
+    inline_keyboard: [[{ text: "OK", callback_data: "ok" }]],
+  },
+});
+
 // Редактирование
 await sender.editMessage({
   chatId: "123456789",
@@ -189,6 +198,9 @@ await sender.editMessage({
   text: "Обновлённый текст",
   useMarkdownV2: true,
 });
+
+// Замена только клавиатуры (например, снять кнопки)
+await sender.editMessageReplyMarkup("123456789", 42, { inline_keyboard: [] });
 
 // Удаление
 await sender.deleteMessage("123456789", 42);
@@ -619,6 +631,29 @@ const chunkList = splitMessageToChunkList(longReport);
 const smallChunkList = splitMessageToChunkList(longReport, 1000);
 ```
 
+Для отчётов, разбитых на смысловые блоки пустой строкой, есть разбиение
+по границам абзацев — оно сначала режет по пустым строкам, затем (если блок
+всё равно велик) по строкам:
+
+```typescript
+import {
+  splitMessageByBoundary,
+  sendSplitMessage,
+  TELEGRAM_MESSAGE_SPLIT_LIMIT, // 3500
+} from "@solncebro/telegram-engine";
+
+// Разбиение с сохранением абзацев целиком (когда влезают)
+const partList = splitMessageByBoundary(report, TELEGRAM_MESSAGE_SPLIT_LIMIT);
+
+// Разбить и отправить по частям — sender получает часть и её индекс
+await sendSplitMessage({
+  message: report,
+  sender: (chunk, index) =>
+    bot.telegram.sendMessage(chatId, chunk, { parse_mode: "MarkdownV2" }),
+  limit: TELEGRAM_MESSAGE_SPLIT_LIMIT, // опционально
+});
+```
+
 #### Трекинг сообщений меню
 
 При навигации по inline-меню нужно удалять старые сообщения и редактировать текущее:
@@ -662,6 +697,26 @@ await deleteMessageListById({
 ---
 
 ### 5. Broadcast — Рассылка
+
+#### broadcastToRecipients — универсальный примитив
+
+Низкоуровневая рассылка: вызывает `sendToPeer` для каждого получателя параллельно,
+каждого — в своём try/catch, поэтому один упавший чат не блокирует остальных.
+Содержимое и parse mode задаёт сам `sendToPeer` — примитив агностичен к виду
+сообщения (текст, готовый MarkdownV2, фото). На нём построен `createBroadcaster`,
+и его же удобно использовать для собственной рассылки:
+
+```typescript
+import { broadcastToRecipients } from "@solncebro/telegram-engine";
+
+await broadcastToRecipients({
+  recipientList: ["111111", "222222", "333333"],
+  sendToPeer: (peer) =>
+    bot.telegram.sendPhoto(peer, chartFileId, { caption: "Дневной график" }),
+  onLog: (msg, data) => logger.error(data, msg),
+  errorLogMessage: "Не удалось отправить график",
+});
+```
 
 #### Broadcaster
 
@@ -1224,7 +1279,7 @@ bot.bot.action("order_cancel", async (ctx) => {
 | `createBotRegistry` | core | Реестр N ботов с общим access control |
 | `createBot` | core | Одиночный Telegraf-инстанс (с crash guard) |
 | `applyBotCrashGuard` | core | Защита long polling от падения одного handler'а |
-| `createSender` | core | Примитивы отправки, привязанные к боту |
+| `createSender` | core | Примитивы отправки (`sendMessage` с `replyMarkup`, `editMessageReplyMarkup`), привязанные к боту |
 | `createAccessControl` | core | Белый список peer ID |
 | `createCallbackEncoder` | menu | Кодирование callback_data (64-байтный лимит) |
 | `createKeyboardBuilder` | menu | Построение inline-клавиатур |
@@ -1243,6 +1298,8 @@ bot.bot.action("order_cancel", async (ctx) => {
 | `buildMessageIdListToDelete` | menu | Список ID на удаление (трекинг + callback-сообщение) |
 | `isBenignTelegramEditError` | message | Распознать безвредную ошибку правки/удаления |
 | `editMessageWithFallback` | message | Правка caption → откат на правку текста |
+| `applyIncomingMessageCleanup` | message | Middleware: удалять входящие сообщения пользователя в разрешённых чатах |
+| `logFailedTelegramAlert` | message | Залогировать отклонённый Promise отправки, не прерывая поток |
 | `createInputStateManager` | input | Состояние ввода пользователя |
 | `validatePositiveNumber` | input | Проверка `> 0` |
 | `validateIntegerAndPositive` | input | Проверка целое + положительное |
@@ -1251,13 +1308,17 @@ bot.bot.action("order_cancel", async (ctx) => {
 | `escapeMarkdownV2WithFormatting` | message | Экранирование с сохранением разметки |
 | `formatClickableText` | message | Оборачивание в backticks |
 | `markdownV2Builder` | message | Билдер bold/italic/code/spoiler/link/escape |
-| `splitMessageToChunkList` | message | Разбиение по лимиту |
+| `splitMessageToChunkList` | message | Разбиение по лимиту (по строкам) |
+| `splitMessageByBoundary` | message | Разбиение по абзацам, затем по строкам |
+| `sendSplitMessage` | message | Разбить и отправить по частям (sender получает часть + индекс) |
 | `createMessageTracker` | message | Трекинг message ID по чатам |
 | `deleteMessageListById` | message | Пакетное удаление |
+| `broadcastToRecipients` | broadcast | Универсальный примитив per-recipient fan-out |
 | `createBroadcaster` | broadcast | Рассылка всем получателям |
 | `createReporter` | broadcast | Retry-обёртка для рассылки |
 | `registerBotCommands` | command | Декларативная регистрация команд |
 | `pause` | utils | `setTimeout` в Promise |
 | `TELEGRAM_MESSAGE_MAX_LENGTH` | utils | 3500 |
+| `TELEGRAM_MESSAGE_SPLIT_LIMIT` | message | 3500 (лимит по умолчанию для разбиения по абзацам) |
 | `DEFAULT_BROADCAST_PAUSE_MS` | utils | 300 |
 | `DEFAULT_MAX_PINNED_COUNT` | utils | 10 |

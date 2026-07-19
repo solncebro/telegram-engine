@@ -1,5 +1,7 @@
 import { Telegraf } from "telegraf";
 
+import type { RawInlineKeyboardMarkup } from "./keyboard.types";
+
 interface CreateBotArgs {
   botToken: string;
   botName: string;
@@ -37,6 +39,7 @@ interface SendMessageArgs {
   isSilentMessage?: boolean;
   useMarkdownV2?: boolean;
   returnMessageId?: boolean;
+  replyMarkup?: RawInlineKeyboardMarkup;
 }
 
 interface EditMessageArgs {
@@ -51,6 +54,11 @@ interface TelegramSender {
   pinMessage: (chatId: string, messageId: number) => Promise<void>;
   unpinMessage: (chatId: string, messageId: number) => Promise<void>;
   editMessage: (args: EditMessageArgs) => Promise<void>;
+  editMessageReplyMarkup: (
+    chatId: string,
+    messageId: number,
+    replyMarkup: RawInlineKeyboardMarkup,
+  ) => Promise<void>;
   deleteMessage: (chatId: string, messageId: number) => Promise<void>;
 }
 

@@ -2,13 +2,21 @@
 
 ## Broadcast (`src/broadcast/`)
 
+### broadcastToRecipients.ts — Универсальный fan-out
+
+```
+broadcastToRecipients({ recipientList, sendToPeer, onLog?, errorLogMessage? }) → Promise<void>
+```
+
+Низкоуровневый примитив рассылки: `sendToPeer(peer)` вызывается для каждого получателя параллельно (`Promise.all`), каждый — в своём try/catch, поэтому один упавший чат не блокирует остальных (ошибка логируется через `onLog`, не бросается; текст по умолчанию `"Failed to send to peer"`, переопределяется через `errorLogMessage`). Содержимое и parse mode задаёт сам `sendToPeer` — примитив агностичен к виду сообщения (текст, готовый MarkdownV2, фото). Это единый механизм рассылки: `createBroadcaster` (sendToAll/sendChunkedToAll/sendAndPin) построен поверх него, и его же используют потребители, рассылающие свои сообщения (например, `TelegramNotifier` из trade-engine — текст; rubber — фото-график по всем чатам).
+
 ### broadcaster.ts — Отправка всем пользователям
 
 ```
 createBroadcaster({ sender, recipientList, onLog? }) → Broadcaster
 ```
 
-Оборачивает `TelegramSender` для массовой рассылки по `recipientList`. Все ошибки ловятся per-peer — один упавший отправитель не блокирует остальных.
+Оборачивает `TelegramSender` для массовой рассылки по `recipientList` поверх `broadcastToRecipients`. Все ошибки ловятся per-peer — один упавший отправитель не блокирует остальных.
 
 **Методы:**
 

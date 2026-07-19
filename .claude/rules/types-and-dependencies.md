@@ -13,7 +13,7 @@
 | `wizard.types.ts` | Wizard |
 | `input.types.ts` | InputState, InputStateManager, ValidateIntegerAndPositiveResult, ParseCommaSeparatedRangeResult |
 | `message.types.ts` | MessageTracker, DeleteMessageListByIdArgs, FormattingMarkerItem |
-| `broadcast.types.ts` | CreateBroadcasterArgs, SendAndPinArgs, Broadcaster, Reporter |
+| `broadcast.types.ts` | BroadcastToRecipientsArgs, CreateBroadcasterArgs, SendAndPinArgs, Broadcaster, Reporter |
 | `command.types.ts` | CommandConfig, RegisterBotCommandsArgs |
 
 ## Ключевые типы
@@ -94,8 +94,10 @@ Alias для `ReturnType<typeof Markup.inlineKeyboard>` из Telegraf.
 | `message/editMessageWithFallback` | Telegraf Context |
 | `menu/keyboardBuilder` | `menu/callbackEncoder` (через переданный encoder) |
 | `message/splitMessage` | `utils/constants` |
+| `message/incomingMessageCleanup` | `message/telegramEditError`, `types/lifecycle.types`, Telegraf |
 | `message/deleteMessageList` | `types/message.types` |
-| `broadcast/broadcaster` | `utils/pause`, `utils/constants`, `types/broadcast.types` |
+| `broadcast/broadcastToRecipients` | `types/broadcast.types` |
+| `broadcast/broadcaster` | `broadcast/broadcastToRecipients`, `utils/pause`, `utils/constants`, `types/broadcast.types` |
 | `broadcast/reporter` | `types/broadcast.types` (через broadcaster) |
 | `command/commandRegistrar` | `types/command.types` |
 
@@ -108,6 +110,7 @@ Alias для `ReturnType<typeof Markup.inlineKeyboard>` из Telegraf.
 - `menu/menuRouter` — только типы
 - `menu/actionRouter` — только типы
 - `message/markdownV2` — полностью автономен
+- `message/telegramAlert` — полностью автономен (только `console.error`)
 - `message/messageTracker` — только типы
 - `input/inputValidator` — только типы
 - `input/inputStateManager` — только типы

@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.4.0
+
+Inline keyboards on plain sends, a reusable broadcast primitive, paragraph-aware message splitting, and incoming-message cleanup middleware.
+
+### Features
+
+**Core**
+- **`sender.sendMessage` — `replyMarkup`** — Optional inline keyboard on a plain send (`{ inline_keyboard: [...] }`), forwarded as `reply_markup`.
+- **`sender.editMessageReplyMarkup(chatId, messageId, replyMarkup)`** — Replace a message's inline keyboard without touching its text (e.g. `{ inline_keyboard: [] }` removes the buttons).
+
+**Broadcast**
+- **`broadcastToRecipients`** — Generic per-recipient fan-out primitive: runs `sendToPeer(peer)` for every recipient in parallel, each in its own try/catch, so one failing chat never blocks the others. Agnostic to message kind and parse mode — the caller supplies the send operation. `createBroadcaster` (`sendToAll` / `sendChunkedToAll` / `sendAndPin`) is now built on top of it.
+
+**Message**
+- **`splitMessageByBoundary`** — Paragraph-aware splitting: cuts on blank lines first, falling back to line boundaries (and then to a standalone oversized line) only when a block exceeds the limit.
+- **`sendSplitMessage`** — Splits via `splitMessageByBoundary` and sends the parts sequentially; the `sender` callback receives each part and its index. Decoupled from `TelegramSender`.
+- **`TELEGRAM_MESSAGE_SPLIT_LIMIT`** — Default split limit (3500) for paragraph-aware splitting.
+- **`applyIncomingMessageCleanup`** — Telegraf middleware that deletes every incoming user message in allowed chats, keeping only the bot's live menu and alerts. Always calls `next()`; benign delete errors are swallowed, others logged.
+- **`logFailedTelegramAlert`** — Fire-and-forget helper that logs a rejected send promise via `console.error` without blocking the main flow.
+
+**Types**
+- **`BroadcastToRecipientsArgs`** — Args for the fan-out primitive.
+- **`SendSplitMessageArgs`** — Args for `sendSplitMessage`.
+- **`ApplyIncomingMessageCleanupArgs`** — Args for the cleanup middleware.
+- Extended **`SendMessageArgs`** (`replyMarkup`) and **`TelegramSender`** (`editMessageReplyMarkup`).
+
+### Improvements
+
+- **`createBroadcaster`** — All three methods deduplicated onto `broadcastToRecipients`; `sendChunkedToAll` keeps its per-message try/catch and pause inside the per-peer callback.
+- **Docs** — README and `.claude/rules/` updated for every new export; `exports.test.ts` extended to cover the new public API.
+
+---
+
 ## 0.3.0
 
 Menu lifecycle toolkit, wizard sessions, crash guard for long polling, and resilient message editing.

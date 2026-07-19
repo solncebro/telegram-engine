@@ -54,10 +54,11 @@ createSender({ getBot, accessControl?, onLog? }) → TelegramSender
 
 | Метод | Сигнатура | Описание |
 |-------|-----------|----------|
-| `sendMessage` | `(args: SendMessageArgs) → Promise<void \| number>` | Отправка с access control, MarkdownV2, silent mode. При `returnMessageId: true` возвращает `message_id`. |
+| `sendMessage` | `(args: SendMessageArgs) → Promise<void \| number>` | Отправка с access control, MarkdownV2, silent mode. Опциональный `replyMarkup` (inline-клавиатура). При `returnMessageId: true` возвращает `message_id`. |
 | `pinMessage` | `(chatId, messageId) → Promise<void>` | Закрепить сообщение. |
 | `unpinMessage` | `(chatId, messageId) → Promise<void>` | Открепить сообщение. |
 | `editMessage` | `(args: EditMessageArgs) → Promise<void>` | Редактирование текста с опциональным MarkdownV2. |
+| `editMessageReplyMarkup` | `(chatId, messageId, replyMarkup) → Promise<void>` | Замена inline-клавиатуры сообщения (напр. `{ inline_keyboard: [] }` снимает кнопки). |
 | `deleteMessage` | `(chatId, messageId) → Promise<void>` | Удаление сообщения. |
 
 Все методы безопасны при `bot === undefined` — просто возвращают `void`.

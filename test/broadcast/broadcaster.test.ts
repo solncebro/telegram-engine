@@ -6,6 +6,7 @@ const createMockSender = (): TelegramSender => ({
   pinMessage: jest.fn().mockResolvedValue(undefined),
   unpinMessage: jest.fn().mockResolvedValue(undefined),
   editMessage: jest.fn().mockResolvedValue(undefined),
+  editMessageReplyMarkup: jest.fn().mockResolvedValue(undefined),
   deleteMessage: jest.fn().mockResolvedValue(undefined),
 });
 

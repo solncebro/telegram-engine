@@ -5,6 +5,7 @@ import type {
   EditMessageArgs,
   TelegramSender,
 } from "../types/bot.types";
+import type { RawInlineKeyboardMarkup } from "../types/keyboard.types";
 
 const createSender = ({
   getBot,
@@ -23,6 +24,7 @@ const createSender = ({
     isSilentMessage = false,
     useMarkdownV2 = false,
     returnMessageId = false,
+    replyMarkup,
   }: SendMessageArgs): Promise<void | number> => {
     if (accessControl && !accessControl.isAllowedPeer(peer)) {
       onLog?.(`Skip send to ${peer}: not allowed`);
@@ -41,6 +43,7 @@ const createSender = ({
     const sentMessage = await telegram.sendMessage(peer, message, {
       disable_notification: isSilentMessage,
       ...(useMarkdownV2 && { parse_mode: "MarkdownV2" }),
+      ...(replyMarkup && { reply_markup: replyMarkup }),
     });
 
     if (returnMessageId) {
@@ -95,6 +98,20 @@ const createSender = ({
     );
   };
 
+  const editMessageReplyMarkup = async (
+    chatId: string,
+    messageId: number,
+    replyMarkup: RawInlineKeyboardMarkup,
+  ): Promise<void> => {
+    const telegram = getTelegram();
+
+    if (!telegram) {
+      return;
+    }
+
+    await telegram.editMessageReplyMarkup(chatId, messageId, undefined, replyMarkup);
+  };
+
   const deleteMessage = async (
     chatId: string,
     messageId: number,
@@ -113,6 +130,7 @@ const createSender = ({
     pinMessage,
     unpinMessage,
     editMessage,
+    editMessageReplyMarkup,
     deleteMessage,
   };
 };

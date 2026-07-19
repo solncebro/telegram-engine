@@ -36,12 +36,17 @@ export {
   formatClickableText,
   markdownV2Builder,
 } from "./message/markdownV2";
-export { splitMessageToChunkList } from "./message/splitMessage";
+export { splitMessageToChunkList, splitMessageByBoundary, sendSplitMessage, TELEGRAM_MESSAGE_SPLIT_LIMIT } from "./message/splitMessage";
+export type { SendSplitMessageArgs } from "./message/splitMessage";
+export { logFailedTelegramAlert } from "./message/telegramAlert";
 export { createMessageTracker } from "./message/messageTracker";
 export { deleteMessageListById } from "./message/deleteMessageList";
 export { isBenignTelegramEditError } from "./message/telegramEditError";
 export { editMessageWithFallback } from "./message/editMessageWithFallback";
+export { applyIncomingMessageCleanup } from "./message/incomingMessageCleanup";
+export type { ApplyIncomingMessageCleanupArgs } from "./message/incomingMessageCleanup";
 
+export { broadcastToRecipients } from "./broadcast/broadcastToRecipients";
 export { createBroadcaster } from "./broadcast/broadcaster";
 export { createReporter } from "./broadcast/reporter";
 
@@ -128,6 +133,7 @@ export type {
 } from "./types/message.types";
 
 export type {
+  BroadcastToRecipientsArgs,
   CreateBroadcasterArgs,
   SendAndPinArgs,
   Broadcaster,

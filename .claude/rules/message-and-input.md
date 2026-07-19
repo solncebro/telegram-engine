@@ -111,6 +111,26 @@ await sender.sendMessage({
 4. Если **одна строка** превышает лимит — добавляет как отдельный чанк (не разбивает mid-line).
 5. Каждый чанк `trimEnd()` — убирает trailing whitespace.
 
+**`splitMessageByBoundary(message: string, limit: number): string[]`**
+
+Разбиение с сохранением смысловых блоков. В отличие от `splitMessageToChunkList` (режет только по `\n`), сначала режет по пустым строкам (`\n\n`), стараясь не разрывать абзацы. Если один блок сам превышает `limit` — откатывается на разбиение этого блока по строкам (`splitOversizedBlock`). Если и одна строка превышает `limit` — добавляет её отдельной частью (не разбивает mid-line). Константа лимита по умолчанию — `TELEGRAM_MESSAGE_SPLIT_LIMIT` (3500).
+
+**`sendSplitMessage(args: SendSplitMessageArgs): Promise<void>`**
+
+Разбивает `message` через `splitMessageByBoundary` и отправляет части **последовательно**. `sender: (chunk, index) => Promise<unknown>` — вызывается на каждую часть с её порядковым номером; `limit?` по умолчанию `TELEGRAM_MESSAGE_SPLIT_LIMIT`. Отвязан от `TelegramSender` — потребитель сам решает, как отправлять.
+
+### telegramAlert.ts — Логирование неудачной отправки
+
+**`logFailedTelegramAlert(promise: Promise<unknown>, contextLabel: string): void`**
+
+Навешивает `.catch` на промис отправки: при отклонении пишет `console.error(contextLabel, error)`. Для fire-and-forget алертов, где падение отправки не должно прерывать основной поток и не требует ожидания результата.
+
+### incomingMessageCleanup.ts — Удаление входящих сообщений
+
+**`applyIncomingMessageCleanup({ bot, isAllowedChat, onLog? }): void`**
+
+Регистрирует Telegraf-middleware (`bot.use`), которое удаляет каждое входящее сообщение пользователя (команды, текст, нажатия reply-клавиатуры) в разрешённых чатах — чтобы в чате оставалось только «живое меню» бота и его алерты. Ставить **до** остальных хендлеров; всегда вызывает `next()`, поэтому downstream-хендлеры по-прежнему видят `ctx.message` (серверное удаление не меняет объект update в памяти). Безвредные ошибки (`isBenignTelegramEditError`) проглатываются, остальные логируются через `onLog` (уровень `"warn"`).
+
 ### messageTracker.ts — Трекинг message ID
 
 ```

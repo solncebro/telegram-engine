@@ -6,6 +6,7 @@ const createMockTelegram = () => ({
   pinChatMessage: jest.fn().mockResolvedValue(true),
   unpinChatMessage: jest.fn().mockResolvedValue(true),
   editMessageText: jest.fn().mockResolvedValue(true),
+  editMessageReplyMarkup: jest.fn().mockResolvedValue(true),
   deleteMessage: jest.fn().mockResolvedValue(true),
 });
 
@@ -135,6 +136,43 @@ describe("createSender", () => {
     );
   });
 
+  it("should send message with an inline keyboard", async () => {
+    const telegram = createMockTelegram();
+    const bot = createMockBot(telegram);
+    const sender = createSender({ getBot: () => bot });
+    const replyMarkup = {
+      inline_keyboard: [[{ text: "OK", callback_data: "ok" }]],
+    };
+
+    await sender.sendMessage({
+      message: "hello",
+      peer: "123",
+      useMarkdownV2: true,
+      replyMarkup,
+    });
+
+    expect(telegram.sendMessage).toHaveBeenCalledWith("123", "hello", {
+      disable_notification: false,
+      parse_mode: "MarkdownV2",
+      reply_markup: replyMarkup,
+    });
+  });
+
+  it("should edit a message's reply markup", async () => {
+    const telegram = createMockTelegram();
+    const bot = createMockBot(telegram);
+    const sender = createSender({ getBot: () => bot });
+
+    await sender.editMessageReplyMarkup("123", 42, { inline_keyboard: [] });
+
+    expect(telegram.editMessageReplyMarkup).toHaveBeenCalledWith(
+      "123",
+      42,
+      undefined,
+      { inline_keyboard: [] },
+    );
+  });
+
   it("should delete message", async () => {
     const telegram = createMockTelegram();
     const bot = createMockBot(telegram);
@@ -152,6 +190,9 @@ describe("createSender", () => {
     await expect(sender.unpinMessage("123", 42)).resolves.toBeUndefined();
     await expect(
       sender.editMessage({ chatId: "123", messageId: 42, text: "text" }),
+    ).resolves.toBeUndefined();
+    await expect(
+      sender.editMessageReplyMarkup("123", 42, { inline_keyboard: [] }),
     ).resolves.toBeUndefined();
     await expect(sender.deleteMessage("123", 42)).resolves.toBeUndefined();
   });

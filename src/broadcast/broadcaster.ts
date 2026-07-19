@@ -1,6 +1,7 @@
 import type { CreateBroadcasterArgs, SendAndPinArgs, Broadcaster } from "../types/broadcast.types";
 import { DEFAULT_BROADCAST_PAUSE_MS, DEFAULT_MAX_PINNED_COUNT } from "../utils/constants";
 import { pause } from "../utils/pause";
+import { broadcastToRecipients } from "./broadcastToRecipients";
 
 const createBroadcaster = ({
   sender,
@@ -11,18 +12,14 @@ const createBroadcaster = ({
     message: string,
     useMarkdownV2 = false,
   ): Promise<void> => {
-    const sendPromiseList = recipientList.map(async (peer) => {
-      try {
+    await broadcastToRecipients({
+      recipientList,
+      sendToPeer: async (peer) => {
         await sender.sendMessage({ message, peer, useMarkdownV2 });
-      } catch (error) {
-        onLog?.("Failed to send message to peer", {
-          peer,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
+      },
+      onLog,
+      errorLogMessage: "Failed to send message to peer",
     });
-
-    await Promise.all(sendPromiseList);
   };
 
   const sendChunkedToAll = async (
@@ -30,27 +27,31 @@ const createBroadcaster = ({
     pauseDuration: number = DEFAULT_BROADCAST_PAUSE_MS,
     useMarkdownV2 = false,
   ): Promise<void> => {
-    const sendPromiseList = recipientList.map(async (peer) => {
-      for (let i = 0; i < messageList.length; i++) {
-        const message = messageList[i];
+    await broadcastToRecipients({
+      recipientList,
+      // Per-message try/catch keeps messageIndex context and lets a peer continue past a
+      // single failed chunk; the fan-out primitive only parallelizes across recipients.
+      sendToPeer: async (peer) => {
+        for (let i = 0; i < messageList.length; i++) {
+          const message = messageList[i];
 
-        try {
-          await sender.sendMessage({ message, peer, useMarkdownV2 });
+          try {
+            await sender.sendMessage({ message, peer, useMarkdownV2 });
 
-          if (i < messageList.length - 1) {
-            await pause(pauseDuration);
+            if (i < messageList.length - 1) {
+              await pause(pauseDuration);
+            }
+          } catch (error) {
+            onLog?.("Failed to send message part to peer", {
+              peer,
+              messageIndex: i,
+              error: error instanceof Error ? error.message : String(error),
+            });
           }
-        } catch (error) {
-          onLog?.("Failed to send message part to peer", {
-            peer,
-            messageIndex: i,
-            error: error instanceof Error ? error.message : String(error),
-          });
         }
-      }
+      },
+      onLog,
     });
-
-    await Promise.all(sendPromiseList);
   };
 
   const sendAndPin = async ({
@@ -59,8 +60,9 @@ const createBroadcaster = ({
     maxPinnedCount = DEFAULT_MAX_PINNED_COUNT,
     useMarkdownV2 = false,
   }: SendAndPinArgs): Promise<void> => {
-    const sendPromiseList = recipientList.map(async (peer) => {
-      try {
+    await broadcastToRecipients({
+      recipientList,
+      sendToPeer: async (peer) => {
         const sendResult = await sender.sendMessage({
           message,
           peer,
@@ -86,15 +88,10 @@ const createBroadcaster = ({
             : [...list, sendResult];
 
         pinnedMessageIdListByChatId.set(peer, newList);
-      } catch (error) {
-        onLog?.("Failed to send and pin message", {
-          peer,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
+      },
+      onLog,
+      errorLogMessage: "Failed to send and pin message",
     });
-
-    await Promise.all(sendPromiseList);
   };
 
   return { sendToAll, sendChunkedToAll, sendAndPin };

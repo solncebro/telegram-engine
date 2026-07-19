@@ -1,5 +1,12 @@
 import { TelegramSender, LogFunction } from "./bot.types";
 
+interface BroadcastToRecipientsArgs {
+  recipientList: string[];
+  sendToPeer: (peer: string) => Promise<void>;
+  onLog?: LogFunction;
+  errorLogMessage?: string;
+}
+
 interface CreateBroadcasterArgs {
   sender: TelegramSender;
   recipientList: string[];
@@ -39,6 +46,7 @@ interface Reporter {
 }
 
 export type {
+  BroadcastToRecipientsArgs,
   CreateBroadcasterArgs,
   SendAndPinArgs,
   Broadcaster,
