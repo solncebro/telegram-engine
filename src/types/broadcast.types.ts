@@ -1,4 +1,5 @@
 import { TelegramSender, LogFunction } from "./bot.types";
+import type { RawInlineKeyboardMarkup } from "./keyboard.types";
 
 interface BroadcastToRecipientsArgs {
   recipientList: string[];
@@ -13,6 +14,13 @@ interface CreateBroadcasterArgs {
   onLog?: LogFunction;
 }
 
+// rubber needs an inline "retry entry" button under a broadcast rejection
+// alert (KATUSDT 09.09.2026); reuses the sender's own keyboard type instead
+// of inventing a second one.
+interface BroadcastExtra {
+  replyMarkup?: RawInlineKeyboardMarkup;
+}
+
 interface SendAndPinArgs {
   message: string;
   pinnedMessageIdListByChatId: Map<string, number[]>;
@@ -24,6 +32,7 @@ interface Broadcaster {
   sendToAll: (
     message: string,
     useMarkdownV2?: boolean,
+    extra?: BroadcastExtra,
   ) => Promise<void>;
   sendChunkedToAll: (
     messageList: string[],
@@ -41,13 +50,19 @@ interface Reporter {
   reportEvent: (
     message: string,
     useMarkdownV2?: boolean,
+    extra?: BroadcastExtra,
   ) => Promise<void>;
-  reportError: (message: string, error: unknown) => Promise<void>;
+  reportError: (
+    message: string,
+    error: unknown,
+    extra?: BroadcastExtra,
+  ) => Promise<void>;
 }
 
 export type {
   BroadcastToRecipientsArgs,
   CreateBroadcasterArgs,
+  BroadcastExtra,
   SendAndPinArgs,
   Broadcaster,
   CreateReporterArgs,

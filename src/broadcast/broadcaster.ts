@@ -1,4 +1,9 @@
-import type { CreateBroadcasterArgs, SendAndPinArgs, Broadcaster } from "../types/broadcast.types";
+import type {
+  CreateBroadcasterArgs,
+  SendAndPinArgs,
+  Broadcaster,
+  BroadcastExtra,
+} from "../types/broadcast.types";
 import { DEFAULT_BROADCAST_PAUSE_MS, DEFAULT_MAX_PINNED_COUNT } from "../utils/constants";
 import { pause } from "../utils/pause";
 import { broadcastToRecipients } from "./broadcastToRecipients";
@@ -11,11 +16,22 @@ const createBroadcaster = ({
   const sendToAll = async (
     message: string,
     useMarkdownV2 = false,
+    extra?: BroadcastExtra,
   ): Promise<void> => {
     await broadcastToRecipients({
       recipientList,
       sendToPeer: async (peer) => {
-        await sender.sendMessage({ message, peer, useMarkdownV2 });
+        await sender.sendMessage({
+          message,
+          peer,
+          useMarkdownV2,
+          // Omit the key entirely rather than sending it as `undefined` — the
+          // call shape without a keyboard must stay byte-identical to the one
+          // before `extra` existed (review round 1 found the previous
+          // unconditional key made the "no keyboard" test unable to tell the
+          // difference, KATUSDT 09.09.2026).
+          ...(extra?.replyMarkup !== undefined && { replyMarkup: extra.replyMarkup }),
+        });
       },
       onLog,
       errorLogMessage: "Failed to send message to peer",

@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.0
+
+Column layout for inline keyboards.
+
+### Features
+
+**Broadcast**
+- **`sendToAll`** accepts an optional inline keyboard (`replyMarkup`).
+
+**Menu**
+- **`createKeyboardBuilder(encoder, defaultLayout?)`** — Optional builder-level `KeyboardLayout` (`{ columnCount }`): every `build` lays its flat button list out `columnCount` per row (default 1 — one button per row, exactly as before). A menu of eight buttons one under another filled a whole phone screen; two columns halve it without a hand-rolled keyboard in every bot.
+- **`build(buttonConfigList, navigationConfig?, layout?)`** — Third optional argument overrides the builder's column count for one keyboard. The navigation pair (Back / Main menu) stays the last row whatever the layout.
+- **`buildRows(rowList, navigationConfig?)`** — Keeps the caller's rows exactly as given, for keyboards whose shape carries meaning (a headline button alone on top, a fixed pair at the bottom); same encoder, same navigation row.
+
+**Types**
+- **`KeyboardLayout`** — `{ columnCount?: number }`.
+- Extended **`KeyboardBuilder`** (`buildRows`, layout argument of `build`).
+
+---
+
 ## 0.4.0
 
 Inline keyboards on plain sends, a reusable broadcast primitive, paragraph-aware message splitting, and incoming-message cleanup middleware.

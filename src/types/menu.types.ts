@@ -26,9 +26,23 @@ interface NavigationButtonConfig<TData> {
   mainMenuCallbackData: Partial<TData>;
 }
 
+/** How a flat button list is laid out: `columnCount` buttons per row (1 = one per row, the default). */
+interface KeyboardLayout {
+  columnCount?: number;
+}
+
 interface KeyboardBuilder<TData> {
+  /** Lays the flat list out in rows of `columnCount` (the call's layout, else the builder's default,
+   *  else one per row); the navigation pair, when given, is always the last row. */
   build: (
     buttonConfigList: Array<ButtonConfig<TData>>,
+    navigationConfig?: NavigationButtonConfig<TData>,
+    layout?: KeyboardLayout,
+  ) => InlineKeyboard;
+  /** Keeps the caller's rows exactly as given — for keyboards whose shape carries meaning (a
+   *  headline button alone on top, a fixed pair at the bottom); the navigation pair is the last row. */
+  buildRows: (
+    rowList: Array<Array<ButtonConfig<TData>>>,
     navigationConfig?: NavigationButtonConfig<TData>,
   ) => InlineKeyboard;
 }
@@ -119,6 +133,7 @@ export type {
   ButtonConfig,
   InlineKeyboard,
   NavigationButtonConfig,
+  KeyboardLayout,
   KeyboardBuilder,
   NavigationStepSchema,
   NavigationSchema,

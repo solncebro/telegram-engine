@@ -83,6 +83,7 @@ export type {
   InlineKeyboard,
   NavigationButtonConfig,
   KeyboardBuilder,
+  KeyboardLayout,
   NavigationStepSchema,
   NavigationSchema,
   MenuStepResult,
@@ -135,6 +136,7 @@ export type {
 export type {
   BroadcastToRecipientsArgs,
   CreateBroadcasterArgs,
+  BroadcastExtra,
   SendAndPinArgs,
   Broadcaster,
   CreateReporterArgs,

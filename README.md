@@ -318,7 +318,9 @@ const decoded = encoder.decode(encoded);
 ```typescript
 import { createKeyboardBuilder } from "@solncebro/telegram-engine";
 
-const kb = createKeyboardBuilder(encoder);
+// Две кнопки в ряду у всех клавиатур этого сборщика (по умолчанию — одна). Одну клавиатуру
+// можно переложить иначе третьим аргументом build: kb.build(list, nav, { columnCount: 3 }).
+const kb = createKeyboardBuilder(encoder, { columnCount: 2 });
 
 // Клавиатура главного меню
 const mainMenuKeyboard = kb.build([
@@ -1282,7 +1284,7 @@ bot.bot.action("order_cancel", async (ctx) => {
 | `createSender` | core | Примитивы отправки (`sendMessage` с `replyMarkup`, `editMessageReplyMarkup`), привязанные к боту |
 | `createAccessControl` | core | Белый список peer ID |
 | `createCallbackEncoder` | menu | Кодирование callback_data (64-байтный лимит) |
-| `createKeyboardBuilder` | menu | Построение inline-клавиатур |
+| `createKeyboardBuilder` | menu | Построение inline-клавиатур: `build` (плоский список, раскладка по `columnCount`), `buildRows` (явные ряды) |
 | `createNavigationSchema` | menu | Граф навигации с валидацией |
 | `createMenuRouter` | menu | Роутер шагов меню |
 | `createActionRouter` | menu | Роутер действий |

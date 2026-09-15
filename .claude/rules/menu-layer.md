@@ -29,17 +29,22 @@ const fieldConfigList: FieldConfig<MyData>[] = [
 ## keyboardBuilder.ts — Построение клавиатур
 
 ```
-createKeyboardBuilder<TData>(encoder: CallbackEncoder<TData>) → KeyboardBuilder<TData>
+createKeyboardBuilder<TData>(encoder: CallbackEncoder<TData>, defaultLayout?: KeyboardLayout) → KeyboardBuilder<TData>
 ```
 
-Использует переданный encoder для сериализации callback_data каждой кнопки.
+Использует переданный encoder для сериализации callback_data каждой кнопки. `defaultLayout` (`{ columnCount }`, 0.5.0) — сколько кнопок в ряду по умолчанию у ВСЕХ клавиатур этого сборщика; без него — одна кнопка в ряду, как раньше.
 
-**`build(buttonConfigList, navigationConfig?)`** → `InlineKeyboard`
+**`build(buttonConfigList, navigationConfig?, layout?)`** → `InlineKeyboard`
 
-- `buttonConfigList` — массив `{ text, callbackData: Partial<TData> }`. Каждая кнопка на отдельной строке.
-- `navigationConfig` (опциональный) — добавляет строку навигации: "Back" + "Main menu" на одной строке.
+- `buttonConfigList` — плоский массив `{ text, callbackData: Partial<TData> }`; режется на ряды по `columnCount` (из `layout` вызова, иначе из `defaultLayout` сборщика, иначе 1).
+- `navigationConfig` (опциональный) — добавляет ПОСЛЕДНЮЮ строку навигации: "Back" + "Main menu" на одной строке, при любой раскладке.
   - `backText` / `mainMenuText` — кастомный текст (по умолчанию "Back" / "Main menu").
   - `backCallbackData` / `mainMenuCallbackData` — callback_data для каждой кнопки.
+- `layout` (опциональный) — переопределить число колонок для одной клавиатуры.
+
+**`buildRows(rowList, navigationConfig?)`** → `InlineKeyboard` (0.5.0)
+
+Ряды ровно такие, как передал вызывающий, — для клавиатур, у которых форма значима (заглавная кнопка одна сверху, фиксированная пара внизу). Тот же encoder, та же строка навигации последней. Повод: боты собирали такие клавиатуры руками поверх encoder'а, обходя сборщик.
 
 Внутри: `Markup.button.callback(text, encoder.encode(data))` → `Markup.inlineKeyboard([...rows])`.
 

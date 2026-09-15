@@ -1,5 +1,6 @@
 import { createBroadcaster } from "../../src/broadcast/broadcaster";
 import type { TelegramSender } from "../../src/types/bot.types";
+import type { RawInlineKeyboardMarkup } from "../../src/types/keyboard.types";
 
 const createMockSender = (): TelegramSender => ({
   sendMessage: jest.fn().mockResolvedValue(undefined),
@@ -46,6 +47,61 @@ describe("createBroadcaster", () => {
       await broadcaster.sendToAll("hello");
 
       expect(onLog).toHaveBeenCalled();
+    });
+
+    // rubber needs an "entry retry" inline button under the rejection alert
+    // it broadcasts to every chat (KATUSDT 09.09.2026); sendToAll had no way
+    // to carry a keyboard until now.
+    // Deliberately distinct from "should send message to all recipients" above:
+    // that test never passes a third argument at all, so it stays green even if
+    // the whole `extra` feature were deleted (found in review round 1, KATUSDT
+    // 09.09.2026). This one passes an `extra` with no `replyMarkup` and checks
+    // with toStrictEqual (which, unlike toEqual/toHaveBeenCalledWith, treats an
+    // explicit `undefined` key as different from a missing one) that the call
+    // to sendMessage carries no `replyMarkup` key at all — proving `extra` truly
+    // has no effect on the call shape when it carries nothing.
+    it("should not attach a replyMarkup key when extra carries none", async () => {
+      const sender = createMockSender();
+      const broadcaster = createBroadcaster({
+        sender,
+        recipientList: ["user1"],
+      });
+
+      await broadcaster.sendToAll("hello", false, {});
+
+      const callArgs = (sender.sendMessage as jest.Mock).mock.calls[0][0];
+
+      expect(callArgs).toStrictEqual({
+        message: "hello",
+        peer: "user1",
+        useMarkdownV2: false,
+      });
+    });
+
+    it("should forward replyMarkup to every recipient when given as the third argument", async () => {
+      const sender = createMockSender();
+      const broadcaster = createBroadcaster({
+        sender,
+        recipientList: ["user1", "user2"],
+      });
+      const replyMarkup: RawInlineKeyboardMarkup = {
+        inline_keyboard: [[{ text: "Retry entry", callback_data: "retry_entry" }]],
+      };
+
+      await broadcaster.sendToAll("entry rejected", false, { replyMarkup });
+
+      expect(sender.sendMessage).toHaveBeenCalledWith({
+        message: "entry rejected",
+        peer: "user1",
+        useMarkdownV2: false,
+        replyMarkup,
+      });
+      expect(sender.sendMessage).toHaveBeenCalledWith({
+        message: "entry rejected",
+        peer: "user2",
+        useMarkdownV2: false,
+        replyMarkup,
+      });
     });
   });
 
